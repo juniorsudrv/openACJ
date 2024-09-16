@@ -2,7 +2,7 @@
  
  import java.awt.Point;
  import java.io.Serializable;
- import meupneuronio.OpenAJC;
+ import myNeuronPC.OpenACJ;
  
  
  
@@ -39,7 +39,7 @@
    
    public String n1 = "X";
    public String n2 = "O";
-   public OpenAJC rede = null;
+   public OpenACJ rede = null;
    public String nrede = "Rede Teste X ou O";
    public Point dimensao = null;
  }

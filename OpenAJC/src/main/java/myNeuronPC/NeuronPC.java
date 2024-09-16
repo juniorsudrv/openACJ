@@ -1,14 +1,11 @@
-package meupneuronio;
+package myNeuronPC;
 
 import Biblis.MemoryUtils;
-import TrabalhaBits.NumeroBits;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class NeuronioPC
+public class NeuronPC
         implements Serializable, Cloneable {
 
     public int countIndex = 0;
@@ -28,27 +25,26 @@ public class NeuronioPC
     float invertReturnN,
             invertReturnP;
 
-    public NeuronioPC(int indice, boolean iP) {
+    public NeuronPC(int indice, boolean iP) {
 
-        invertD =(byte) -3;
-        invertM =(byte) 3;
+        invertD = (byte) -3;
+        invertM = (byte) 3;
 
         aprendizado = aprendizado * indice;
-        pesoInicial = pesoInicial * indice ;
+        pesoInicial = pesoInicial * indice;
 
-        
-      bias = 0.07f;
-      
+        bias = 0.07f;
+
         this.MaxM = MemoryUtils.maxMemory();
         this.indice = indice;
         if (indice != 0) {
-           // this.maxtentativas += indice * 2;
+            // this.maxtentativas += indice * 2;
         }
     }
 
     protected void iniciaPeso(int lt) {
-        this.pesos=new float[lt];
-        
+        this.pesos = new float[lt];
+
         for (int cont = 0; cont < lt; cont++) {
             if (MemoryUtils.usedMemory() > this.MaxM - 200.0D) {
                 System.out
@@ -56,11 +52,11 @@ public class NeuronioPC
                 System.gc();
             }
 
-            this.pesos[cont]= pesoInicial ;//* ((cont+1)*0.07f);
+            this.pesos[cont] = pesoInicial;//* ((cont+1)*0.07f);
         }
     }
 
-    protected NeuronioPC dentritos(byte... entradas) {
+    protected NeuronPC dentritos(byte... entradas) {
         this.aentradas = entradas;
         this.udentritos = entradas;
 
@@ -71,7 +67,6 @@ public class NeuronioPC
 //        if (this.ncorrecoes > this.maxtentativas) {
 //            this.aentradas[this.indice] = invertEntrada(this.aentradas[this.indice]);
 //        }
-
         float acum = 0.0f;
         try {
             for (int cont = 0; cont < entradas.length; cont++) {
@@ -79,17 +74,17 @@ public class NeuronioPC
 
             }
         } catch (Exception ex) {
-            Logger.getLogger(NeuronioPC.class.getName()).log(Level.SEVERE, (String) null, ex);
+            Logger.getLogger(NeuronPC.class.getName()).log(Level.SEVERE, (String) null, ex);
 
             System.out.println(" Entrada p  " + this.pesos.length + " " + entradas.length);
             System.exit(0);
         }
-         acum += (  this.bias);
+        acum += (this.bias);
         this.S = acum;
         return this;
     }
 
-    protected NeuronioPC dentritos(int nBitsG, byte... entradas) {
+    protected NeuronPC dentritos(int nBitsG, byte... entradas) {
         this.aentradas = entradas;
         this.udentritos = entradas;
 
@@ -100,7 +95,6 @@ public class NeuronioPC
 //        if (this.ncorrecoes > this.maxtentativas) {
 //            this.aentradas[this.indice] = invertEntrada(this.aentradas[this.indice]);
 //        }
-
         float acum = 0.0f;
         try {
             for (int cont = 0; cont < nBitsG; cont++) {
@@ -108,12 +102,12 @@ public class NeuronioPC
 
             }
         } catch (Exception ex) {
-            Logger.getLogger(NeuronioPC.class.getName()).log(Level.SEVERE, (String) null, ex);
+            Logger.getLogger(NeuronPC.class.getName()).log(Level.SEVERE, (String) null, ex);
 
             System.out.println(" Entrada p  " + this.pesos.length + " " + entradas.length);
             System.exit(0);
         }
-         acum += (  this.bias);
+        acum += (this.bias);
         this.S = acum;
         return this;
     }
@@ -151,11 +145,11 @@ public class NeuronioPC
                 valoresperado = valoresperado * valoresTreino[cont];
                 float saida = valoresperado > 0 ? 1 : 0;
 
-                if (cont+1==pesos.length) {     
-                    this.pesos[cont]=this.pesos[cont] + this.aprendizado * (valoresperado - saida) * this.bias;
+                if (cont + 1 == pesos.length) {
+                    this.pesos[cont] = this.pesos[cont] + this.aprendizado * (valoresperado - saida) * this.bias;
                 } else {
 
-                    this.pesos[cont]=this.pesos[cont]  + this.aprendizado * (valoresperado - saida) * valoresTreino[cont];
+                    this.pesos[cont] = this.pesos[cont] + this.aprendizado * (valoresperado - saida) * valoresTreino[cont];
                 }
             }
         }
