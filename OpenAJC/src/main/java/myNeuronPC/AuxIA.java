@@ -17,13 +17,15 @@ import javax.swing.JProgressBar;
 
 public class AuxIA implements Serializable {
 
+    ArrayList<String> valuesPossible=new ArrayList();
+    
     ArrayList<coordCutIMG> cdC = new ArrayList();
 
     int sizeRecX = 16;
     int sizeRecY = 16;
     int qtdQdRec = 4;
     int bdiv = 2;
- 
+
     int xP = 80;
     int yP = 80;
 
@@ -81,7 +83,7 @@ public class AuxIA implements Serializable {
         }
     }
 
-    public void treinar(JProgressBar progresso, int sizeTam, int size, JButton btreino) {
+    public void treinar(JProgressBar progresso, int sizeTam, int size) {
 
         this.sizeTam = sizeTam;
         this.size = size;
@@ -98,11 +100,10 @@ public class AuxIA implements Serializable {
         }
         System.gc();
         progresso.setValue(100);
-        btreino.setEnabled(true);
-
+ 
     }
 
-    public void treinarNew(JProgressBar progresso, int sizeTam, int size, JButton btreino) {
+    public void treinarNew(JProgressBar progresso, int sizeTam, int size) {
 
         this.sizeTam = sizeTam;
         this.size = size;
@@ -119,11 +120,10 @@ public class AuxIA implements Serializable {
         }
 
         progresso.setValue(100);
-        btreino.setEnabled(true);
-
+ 
     }
 
-    public String getResult(JComboBox combo, BufferedImage img) {
+    public String getResult(BufferedImage img) {
         updateCoord(img);
         String result = null;
         int conCertResult = -1;
@@ -146,7 +146,7 @@ public class AuxIA implements Serializable {
 
             if (conCertResult < contCerto) {
                 conCertResult = contCerto;
-                result = combo.getItemAt(cont) + "";
+                result = valuesPossible.get(cont);
 
             }
 
@@ -155,7 +155,7 @@ public class AuxIA implements Serializable {
         return result;
     }
 
-    public int[] getResultCont(JComboBox combo, BufferedImage img) {
+    public int[] getResultCont( BufferedImage img) {
 
         updateCoord(img);
         int conCertResult = -1;
