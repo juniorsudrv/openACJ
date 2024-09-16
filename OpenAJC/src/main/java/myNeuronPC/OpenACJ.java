@@ -80,6 +80,8 @@ public class OpenACJ
 
     }
 
+    
+    
     public static int lenghtImagem(File valor) {
         try {
             return (((DataBufferByte) (ImageIO.read(valor)).getRaster().getDataBuffer()).getData()).length;
@@ -297,7 +299,7 @@ public class OpenACJ
 
                     for (int index = 0; index < valoresEntrada.valueExpected.length; index++) {
 
-                        double r = saidaCompletaFileiras(valoresEntrada);
+                        double r = outNeuronCompletResult(valoresEntrada);
 
                         if (valoresEntrada.valueExpected[index] < 0 && r >= 0 || valoresEntrada.valueExpected[index] >= 0 && r < 0) {
 
@@ -329,7 +331,7 @@ public class OpenACJ
         return true;
     }
 
-    public float saidaCompletaFileiras(NumberToBits valoresEntrada) {
+    public float outNeuronCompletResult(NumberToBits valoresEntrada) {
 
         Integer sM = null;
         int s1 = 0;
@@ -379,11 +381,11 @@ public class OpenACJ
 
     }
 
-    public ArrayList<Float> saidaPSFileira(ArrayList<NumberToBits> nbits) {
+    public ArrayList<Float> resultNeuronOutArray(ArrayList<NumberToBits> nbits) {
         ArrayList<Float> result = new ArrayList<>();
         for (int l = 0; l < nbits.size(); l++) {
             NumberToBits nb = nbits.get(l);
-            result.add(saidaCompletaFileiras(nb));
+            result.add(outNeuronCompletResult(nb));
         }
 
         return result;
@@ -469,12 +471,12 @@ public class OpenACJ
             int c = 2;
             do {
 //AdErrado 38 Errado 89 -421.6863671271541
-                float s = nr.saidaCompletaFileiras(nr.getValorTeste(
+                float s = nr.outNeuronCompletResult(nr.getValorTeste(
                         c));
                 if (c % 2 != 0 && s < 0
                         || c % 2 == 0 && s >= 0) {
 
-//                System.out.println("Certo " + c + " " + nr.saidaCompletaFileiras(nr.getValorTeste(
+//                System.out.println("Certo " + c + " " + nr.outNeuronCompletResult(nr.getValorTeste(
 //                        c)));
                 } else {
                     aderrado++;
@@ -500,7 +502,7 @@ public class OpenACJ
 
         System.out.println("O método foi executado em " + (System.currentTimeMillis() - tempoInicial));
 
-        // System.out.println(nr.saidaCompletaFileiras(nr.inTrainningBits.get(1)));
+        // System.out.println(nr.outNeuronCompletResult(nr.inTrainningBits.get(1)));
 //        File fileN = new File("E:\\MeusProjetos com IA\\iaAprendizado\\IAaprendizadoCamera\\IMGcopo");
 //        File fileS = new File("E:\\MeusProjetos com IA\\iaAprendizado\\IAaprendizadoCamera\\IMGnaocopo");
 //        File[] nfile = fileN.listFiles();
@@ -545,12 +547,12 @@ public class OpenACJ
 //        long duration = (endTime - startTime) / 1000000;
 //        System.out.println("" + duration);
 //
-//        System.out.println(nr.saidaPSFileira(aN).toString() + "-------");
-//        System.out.println(nr2.saidaPSFileira(aN2).toString() + "-------");
+//        System.out.println(nr.resultNeuronOutArray(aN).toString() + "-------");
+//        System.out.println(nr2.resultNeuronOutArray(aN2).toString() + "-------");
 //
-//        System.out.println(nr.saidaCompletaFileiras(nr.inTrainningBits.get(0)));
+//        System.out.println(nr.outNeuronCompletResult(nr.inTrainningBits.get(0)));
 //
-//        System.out.println(nr2.saidaCompletaFileiras(nr.inTrainningBits.get(0)));
+//        System.out.println(nr2.outNeuronCompletResult(nr.inTrainningBits.get(0)));
     }
 }
 
