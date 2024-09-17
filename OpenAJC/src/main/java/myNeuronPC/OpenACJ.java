@@ -399,7 +399,7 @@ public class OpenACJ
         return t;
     }
 
-    static byte PAR = 2, IMPAR = -2;
+    static byte PAR = -2, IMPAR = 2;
 
     public static void main(String[] args) {
 
@@ -434,7 +434,23 @@ public class OpenACJ
         // nr.showValues();
         long tempoInicial = System.currentTimeMillis();
 
-        OpenACJ nr = new OpenACJ(16);
+        OpenACJ nr = new OpenACJ(4);
+        nr.setValForTraining(0, PAR);
+        nr.setValForTraining(1, IMPAR);
+        nr.setValForTraining(2, IMPAR);
+        nr.setValForTraining(3, PAR);
+        nr.TrainingNewOpenACJ(4, 4);
+
+        System.out.println("Saida " + nr.outNeuronCompletResult(nr.getValueTestBits(0)));
+        System.out.println("Saida " + nr.outNeuronCompletResult(nr.getValueTestBits(1)));
+
+        System.out.println("Saida " + nr.outNeuronCompletResult(nr.getValueTestBits(2)));
+
+        System.out.println("Saida " + nr.outNeuronCompletResult(nr.getValueTestBits(3)));
+
+        if (true) {
+            return;
+        }
 //
 //        nr.setValForTraining(0, PAR);
 //        nr.setValForTraining(1, IMPAR);

@@ -36,10 +36,10 @@ public class NeuronPC
         bias = 0.07f;
 
         this.MaxM = MemoryUtils.maxMemory();
-        this.indice = indice;
-//        if (indice != 0) {
-//            // this.maxtentativas += indice * 2;
-//        }
+  
+        if (indice != 0) {
+             this.maxtentativas += indice * 2;
+        }
     }
 
     protected void startWeight(int lt) {
@@ -54,6 +54,8 @@ public class NeuronPC
 
             this.weights[cont] = weightNeuronStart;//* ((cont+1)*0.07f);
         }
+        
+              this.indice = this.weights.length-1;
     }
 
     protected NeuronPC dentritos(byte... entradas) {
@@ -64,9 +66,9 @@ public class NeuronPC
             startWeight(entradas.length);
         }
 
-//        if (this.ncorrections > this.maxtentativas) {
-//            this.inTrainning[this.indice] = invertEntrada(this.inTrainning[this.indice]);
-//        }
+        if (this.ncorrections > this.maxtentativas) {
+            this.inTrainning[this.indice] = invertEntrada(this.inTrainning[this.indice]);
+        }
         float acum = 0.0f;
         try {
             for (int cont = 0; cont < entradas.length; cont++) {
@@ -92,9 +94,9 @@ public class NeuronPC
             startWeight(nBitsG);
         }
 
-//        if (this.ncorrections > this.maxtentativas) {
-//            this.inTrainning[this.indice] = invertEntrada(this.inTrainning[this.indice]);
-//        }
+        if (this.ncorrections > this.maxtentativas) {
+            this.inTrainning[this.indice] = invertEntrada(this.inTrainning[this.indice]);
+        }
         float acum = 0.0f;
         try {
             for (int cont = 0; cont < nBitsG; cont++) {
