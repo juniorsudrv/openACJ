@@ -19,7 +19,7 @@ public class OpenACJ
 
     public int countTrainning = 0;
 
-    ArrayList<NeuronPC[]> neuronios = new ArrayList<>();
+    ArrayList<NeuronPC[]> neurons = new ArrayList<>();
 
     public ArrayList<NumberToBits> inTrainningBits = new ArrayList<>();
 
@@ -56,7 +56,7 @@ public class OpenACJ
 
     }
 
-    public void printaValores() {
+    public void showValues() {
         for (int cont = 0; cont < inTrainningBits.size(); cont++) {
             System.out.println("\n" + inTrainningBits.get(cont).vetbits.length + "\n");
             for (int d = inTrainningBits.get(cont).vetbits.length - 1; d >= 0; d--) {
@@ -65,12 +65,12 @@ public class OpenACJ
         }
     }
 
-    public NumberToBits getValorTeste(int valor) {
+    public NumberToBits getValueTestBits(int valor) {
         return (new NumberToBits(this.nBitsG, 2, valor, (byte) 0));
 
     }
 
-    public NumberToBits getValorTesteCEsperado(int valor, byte... valorEsperado) {
+    public NumberToBits getValueTestBits(int valor, byte... valorEsperado) {
         return (new NumberToBits(this.nBitsG, 2, valor, valorEsperado));
 
     }
@@ -80,8 +80,6 @@ public class OpenACJ
 
     }
 
-    
-    
     public static int lenghtImagem(File valor) {
         try {
             return (((DataBufferByte) (ImageIO.read(valor)).getRaster().getDataBuffer()).getData()).length;
@@ -235,7 +233,7 @@ public class OpenACJ
 
     public void TrainingContinuesValidExitsACJ(int tamFileira, int nNeuronios) {
 
-        treinoPSFileira(tamFileira, nNeuronios, inTrainningBits, inTrainningBits, neuronios.size() == tamFileira);
+        treinoPSFileira(tamFileira, nNeuronios, inTrainningBits, inTrainningBits, neurons.size() == tamFileira);
     }
 
     public void TrainingNewOpenACJ(int tamFileira, int nNeuronios) {
@@ -248,11 +246,11 @@ public class OpenACJ
         treinoPSFileira(tamFileira, nNeuronios, inTrainningBits, inTrainningBits, true);
     }
 
-    public boolean treinoPSFileira(int tamFileira, int NS, ArrayList<NumberToBits> nbits, ArrayList<NumberToBits> nSaida, boolean continua) {
+    private boolean treinoPSFileira(int tamFileira, int NS, ArrayList<NumberToBits> nbits, ArrayList<NumberToBits> nSaida, boolean continua) {
 
         if (!continua) {
 
-            neuronios = new ArrayList<>();
+            neurons = new ArrayList<>();
 
             int nNeuro;
             int countIndex = 1;
@@ -267,7 +265,7 @@ public class OpenACJ
                     countIndex++;
                 }
 
-                neuronios.add(camada);
+                neurons.add(camada);
 
             }
 
@@ -313,7 +311,7 @@ public class OpenACJ
                             if (contTreinoFileira > limitFileira) {
                                 contTreinoFileira = 0;
                                 nFileira++;
-                                if (nFileira > neuronios.size()) {
+                                if (nFileira > neurons.size()) {
                                     nFileira = 1;
                                 }
 
@@ -335,13 +333,13 @@ public class OpenACJ
 
         Integer sM = null;
         int s1 = 0;
-        for (int ncount = 0; ncount < neuronios.size(); ncount++) {
+        for (int ncount = 0; ncount < neurons.size(); ncount++) {
             s1 = 0;
-            NumberToBits n = sM == null ? valoresEntrada : getValorTesteCEsperado(sM.intValue(), valoresEntrada.valueExpected);
-            for (int nNeuro = 0; nNeuro < neuronios.get(ncount).length; nNeuro++) {
-                s1 += neuronios.get(ncount)[nNeuro]
+            NumberToBits n = sM == null ? valoresEntrada : getValueTestBits(sM.intValue(), valoresEntrada.valueExpected);
+            for (int nNeuro = 0; nNeuro < neurons.get(ncount).length; nNeuro++) {
+                s1 += neurons.get(ncount)[nNeuro]
                         .dentritos(n.vetbits.length, n.vetbits.clone())
-                        .saida();
+                        .out();
 
             }
             sM = s1;
@@ -354,21 +352,21 @@ public class OpenACJ
 
         Integer sM = null;
         int s1 = 0;
-        for (int ncount = 0; ncount < neuronios.size(); ncount++) {
+        for (int ncount = 0; ncount < neurons.size(); ncount++) {
             s1 = 0;
-            NumberToBits n = sM == null ? valoresEntrada : getValorTesteCEsperado(sM.intValue(), valoresEntrada.valueExpected);
-            for (int nNeuro = 0; nNeuro < neuronios.get(ncount).length; nNeuro++) {
-                s1 += neuronios.get(ncount)[nNeuro]
+            NumberToBits n = sM == null ? valoresEntrada : getValueTestBits(sM.intValue(), valoresEntrada.valueExpected);
+            for (int nNeuro = 0; nNeuro < neurons.get(ncount).length; nNeuro++) {
+                s1 += neurons.get(ncount)[nNeuro]
                         .dentritos(n.vetbits.length, n.vetbits.clone())
-                        .saida();
+                        .out();
 
             }
 
             if (ncount + 1 == camada) {
 
-                for (int nNeuro = 0; nNeuro < neuronios.get(ncount).length; nNeuro++) {
+                for (int nNeuro = 0; nNeuro < neurons.get(ncount).length; nNeuro++) {
 
-                    neuronios.get(ncount)[nNeuro].corrigePesos(n.vetbits.clone(),
+                    neurons.get(ncount)[nNeuro].toCorrectWeights(n.vetbits.clone(),
                             n.getValueExpected());
                 }
             }
@@ -433,7 +431,7 @@ public class OpenACJ
 //        nr.setValForTraining(6, PAR);
 //        nr.setValForTraining(7, IMPAR);
         //  nr.setValForTraining(4, PAR);
-        // nr.printaValores();
+        // nr.showValues();
         long tempoInicial = System.currentTimeMillis();
 
         OpenACJ nr = new OpenACJ(16);
@@ -471,12 +469,12 @@ public class OpenACJ
             int c = 2;
             do {
 //AdErrado 38 Errado 89 -421.6863671271541
-                float s = nr.outNeuronCompletResult(nr.getValorTeste(
+                float s = nr.outNeuronCompletResult(nr.getValueTestBits(
                         c));
                 if (c % 2 != 0 && s < 0
                         || c % 2 == 0 && s >= 0) {
 
-//                System.out.println("Certo " + c + " " + nr.outNeuronCompletResult(nr.getValorTeste(
+//                System.out.println("Certo " + c + " " + nr.outNeuronCompletResult(nr.getValueTestBits(
 //                        c)));
                 } else {
                     aderrado++;
@@ -496,11 +494,11 @@ public class OpenACJ
 
             } while (true);
 
-            System.out.println("Terminou " + aderrado + " " + cont);
+            System.out.println("Finish trainning " + aderrado + " " + cont);
         }
 // 100 -> 2968
 
-        System.out.println("O método foi executado em " + (System.currentTimeMillis() - tempoInicial));
+        System.out.println("Time execution " + (System.currentTimeMillis() - tempoInicial));
 
         // System.out.println(nr.outNeuronCompletResult(nr.inTrainningBits.get(1)));
 //        File fileN = new File("E:\\MeusProjetos com IA\\iaAprendizado\\IAaprendizadoCamera\\IMGcopo");
@@ -538,7 +536,7 @@ public class OpenACJ
 //          .contentEquals(nr.getValTrainningBytesToBits(sfile[0]).paraStringCast()));
 //        long startTime = System.nanoTime();
 //
-//          nr.printaValores();
+//          nr.showValues();
 //        nr.TrainingNewOpenACJ(1);
 //         nr.printaValoresPesos();
 //        nr2.TrainingNewOpenACJ(1);
