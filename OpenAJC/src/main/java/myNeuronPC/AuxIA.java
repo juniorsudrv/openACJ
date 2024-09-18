@@ -18,7 +18,7 @@ import javax.swing.JProgressBar;
 
 public class AuxIA implements Serializable {
 
-    ArrayList<String> valuesPossible = new ArrayList();
+    public ArrayList<String> valuesPossible = new ArrayList();
 
     ArrayList<coordCutIMG> cdC = new ArrayList();
 
@@ -61,7 +61,8 @@ public class AuxIA implements Serializable {
 
             if (size == -1) {
 
-                size = OpenACJ.lenghtImagem(img) * 8 * 4;
+                size = OpenACJ.lenghtImagem(convertScaled(img.getSubimage(cdC.get(0).xI, cdC.get(0).yI,
+                        cdC.get(0).largX, cdC.get(0).altX))) * 8 * 4;
 
             }
 
@@ -100,7 +101,10 @@ public class AuxIA implements Serializable {
         int valueInc = 100 / nr.size();
         if (progresso != null) {
             progresso.setValue(0);
+        } else {
+            System.out.println("0");
         }
+
         ini = 0;
 
         for (ArrayList<OpenACJ> nR : nr) {
@@ -110,11 +114,16 @@ public class AuxIA implements Serializable {
             }
             if (progresso != null) {
                 progresso.setValue((ini += valueInc));
+            } else {
+                System.out.println("" + (ini += valueInc));
+
             }
         }
         System.gc();
         if (progresso != null) {
             progresso.setValue(100);
+        } else {
+            System.out.println("100");
         }
     }
 
@@ -125,6 +134,8 @@ public class AuxIA implements Serializable {
         int valueInc = 100 / nr.size();
         if (progresso != null) {
             progresso.setValue(0);
+        } else {
+            System.out.println("0");
         }
         ini = 0;
 
@@ -135,10 +146,15 @@ public class AuxIA implements Serializable {
             }
             if (progresso != null) {
                 progresso.setValue((ini += valueInc));
+            } else {
+                System.out.println("" + (ini += valueInc));
+
             }
         }
         if (progresso != null) {
             progresso.setValue(100);
+        } else {
+            System.out.println("100");
         }
     }
 
@@ -155,8 +171,8 @@ public class AuxIA implements Serializable {
                 OpenACJ n = nR.get(cNr);
 
                 ArrayList<NumberToBits> ar = new ArrayList<>();
-                ar.add(nr.get(0).get(0).getValTrainningBytesToBits(img.getSubimage(cdC.get(cNr).xI, cdC.get(cNr).yI,
-                        cdC.get(cNr).largX, cdC.get(cNr).altX)));
+                ar.add(nr.get(0).get(0).getValTrainningBytesToBits(convertScaled(img.getSubimage(cdC.get(cNr).xI, cdC.get(cNr).yI,
+                        cdC.get(cNr).largX, cdC.get(cNr).altX))));
 
                 if (n.resultNeuronOutArray(ar).get(0) >= 0) {
                     contCerto++;

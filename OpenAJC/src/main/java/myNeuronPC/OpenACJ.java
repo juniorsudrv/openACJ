@@ -76,7 +76,11 @@ public class OpenACJ
     }
 
     public static int lenghtImagem(BufferedImage img) {
-        return (((java.awt.image.DataBufferInt) img.getRaster().getDataBuffer()).getData()).length;
+        
+        Object ob=img.getRaster().getDataBuffer();
+        
+        return (ob instanceof  java.awt.image.DataBufferInt) ? (((java.awt.image.DataBufferInt) ob).getData()).length:
+                 (((java.awt.image.DataBufferByte) ob).getData()).length;
 
     }
 
@@ -202,6 +206,7 @@ public class OpenACJ
         int[] dados;
 
         dados = ((DataBufferInt) ((valor)).getRaster().getDataBuffer()).getData();
+        
         return new NumberToBits(8 * 4, dados.length, 1, dados.clone(), (byte) 0);
 
     }
