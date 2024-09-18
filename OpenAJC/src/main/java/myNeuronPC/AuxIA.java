@@ -3,6 +3,7 @@ package myNeuronPC;
 import WorkBits.NumberToBits;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -17,8 +18,8 @@ import javax.swing.JProgressBar;
 
 public class AuxIA implements Serializable {
 
-    ArrayList<String> valuesPossible=new ArrayList();
-    
+    ArrayList<String> valuesPossible = new ArrayList();
+
     ArrayList<coordCutIMG> cdC = new ArrayList();
 
     int sizeRecX = 16;
@@ -40,6 +41,15 @@ public class AuxIA implements Serializable {
 
     public void zera() {
         nr = new ArrayList<>();
+    }
+
+    public void setValTrainningByteAll(int index, BufferedImage img, byte result) {
+
+        for (int vcont = 0; vcont <= 360; vcont += 10) {
+
+            setValTrainningByte(index, rotateImageByDegrees(img,
+                    vcont), result);
+        }
     }
 
     public void setValTrainningByte(int index, BufferedImage img, byte result) {
@@ -83,12 +93,14 @@ public class AuxIA implements Serializable {
         }
     }
 
-    public void treinar(JProgressBar progresso, int sizeTam, int size) {
+    public void trainning(JProgressBar progresso, int sizeTam, int size) {
 
         this.sizeTam = sizeTam;
         this.size = size;
         int valueInc = 100 / nr.size();
-        progresso.setValue(0);
+        if (progresso != null) {
+            progresso.setValue(0);
+        }
         ini = 0;
 
         for (ArrayList<OpenACJ> nR : nr) {
@@ -96,19 +108,24 @@ public class AuxIA implements Serializable {
                 System.gc();
                 n.TrainingContinuesValidExitsACJ(sizeTam, size);
             }
-            progresso.setValue((ini += valueInc));
+            if (progresso != null) {
+                progresso.setValue((ini += valueInc));
+            }
         }
         System.gc();
-        progresso.setValue(100);
- 
+        if (progresso != null) {
+            progresso.setValue(100);
+        }
     }
 
-    public void treinarNew(JProgressBar progresso, int sizeTam, int size) {
+    public void trainningStarter(JProgressBar progresso, int sizeTam, int size) {
 
         this.sizeTam = sizeTam;
         this.size = size;
         int valueInc = 100 / nr.size();
-        progresso.setValue(0);
+        if (progresso != null) {
+            progresso.setValue(0);
+        }
         ini = 0;
 
         for (ArrayList<OpenACJ> nR : nr) {
@@ -116,11 +133,13 @@ public class AuxIA implements Serializable {
                 System.gc();
                 n.TrainingNewOpenACJ(sizeTam, size);
             }
-            progresso.setValue((ini += valueInc));
+            if (progresso != null) {
+                progresso.setValue((ini += valueInc));
+            }
         }
-
-        progresso.setValue(100);
- 
+        if (progresso != null) {
+            progresso.setValue(100);
+        }
     }
 
     public String getResult(BufferedImage img) {
@@ -155,7 +174,7 @@ public class AuxIA implements Serializable {
         return result;
     }
 
-    public int[] getResultCont( BufferedImage img) {
+    public int[] getResultCont(BufferedImage img) {
 
         updateCoord(img);
         int conCertResult = -1;
@@ -267,6 +286,31 @@ public class AuxIA implements Serializable {
             this.altX = altX;
         }
 
+    }
+
+    public BufferedImage rotateImageByDegrees(BufferedImage img, double angle) {
+
+        double rads = Math.toRadians(angle);
+        double sin = Math.abs(Math.sin(rads)), cos = Math.abs(Math.cos(rads));
+        int w = img.getWidth();
+        int h = img.getHeight();
+        int newWidth = (int) Math.floor(w * cos + h * sin);
+        int newHeight = (int) Math.floor(h * cos + w * sin);
+
+        BufferedImage rotated = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = rotated.createGraphics();
+        AffineTransform at = new AffineTransform();
+        at.translate((newWidth - w) / 2, (newHeight - h) / 2);
+
+        int x = w / 2;
+        int y = h / 2;
+
+        at.rotate(rads, x, y);
+        g2d.setTransform(at);
+        g2d.drawImage(img, 0, 0, null);
+        g2d.dispose();
+
+        return rotated;
     }
 
 }
