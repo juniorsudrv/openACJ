@@ -45,7 +45,7 @@ public class AuxIA implements Serializable {
 
     public void setValTrainningByteAll(int index, BufferedImage img, byte result) {
 
-        for (int vcont = 0; vcont <= 360; vcont += 10) {
+        for (int vcont = 0; vcont <= 360; vcont += 40) {
 
             setValTrainningByte(index, rotateImageByDegrees(img,
                     vcont), result);

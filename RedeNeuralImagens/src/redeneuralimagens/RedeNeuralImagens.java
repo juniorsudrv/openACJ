@@ -33,7 +33,7 @@ public class RedeNeuralImagens {
                 for (File img : imgs.listFiles()) {
                     System.out.println(count + " " + img.getName() + " " + auxia.valuesPossible.get(count) + " "
                             + (auxia.valuesPossible.get(count).contentEquals(folderOK) ? yes : no));
-                    auxia.setValTrainningByte(count, ImageIO.read(img), auxia.valuesPossible.get(count).contentEquals(folderOK) ? yes : no);
+                    auxia.setValTrainningByteAll(count, ImageIO.read(img), auxia.valuesPossible.get(count).contentEquals(folderOK) ? yes : no);
                 }
 
             }
