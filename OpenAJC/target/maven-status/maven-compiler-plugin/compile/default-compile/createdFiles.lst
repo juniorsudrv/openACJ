@@ -6,7 +6,10 @@ Biblis\MemoryUtils.class
 myNeuronPC\AuxIA.class
 myNeuronPC\AuxIA$coordCutIMG.class
 myNeuronPC\OpenACJ.class
+tratamentos\TrataImagens.class
 WorkBits\NumberToBits.class
+tratamentos\AnalisaResultImgBufferedImg.class
+tratamentos\BuffImage.class
 myNeuronPC\NeuronPC.class
 Biblis\Ler.class
 Biblis\Conf.class

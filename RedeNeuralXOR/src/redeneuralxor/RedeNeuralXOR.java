@@ -4,6 +4,7 @@
  */
 package redeneuralxor;
 
+import java.awt.Color;
 import myNeuronPC.OpenACJ;
 
 /**
@@ -16,7 +17,12 @@ public class RedeNeuralXOR {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-
+        Color c = new Color(-1707537);
+        
+        System.out.println(" "+c.toString());
+        if(true)return;
+        
+        
         byte out2 = -2;
         byte outI2 = 2;
 

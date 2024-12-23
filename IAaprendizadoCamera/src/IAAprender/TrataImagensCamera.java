@@ -1,0 +1,568 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
+package IAAprender;
+
+import OpIO.IO;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import tratamentos.AnalisaResultImgBufferedImg;
+
+/**
+ *
+ * @author junio
+ */
+public class TrataImagensCamera implements Serializable {
+
+    public TrataImagensCamera() {
+
+        try {
+            pixels = (ArrayList<int[][]>) IO.ler("XY");
+        } catch (Exception ex) {
+            pixels = new ArrayList<>();
+            Logger.getLogger(TrataImagensCamera.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    public int tamMin = 8;
+    public int mliar = 45;
+
+    public int diffFundo = Color.BLACK.getRGB();
+
+    public ArrayList<int[][]> pixels = new ArrayList();
+
+    public ArrayList<AnalisaResultImgBufferedImg> anR = new ArrayList<>();
+
+    public boolean calibrado = false;
+    int inc = 1;
+    int incvalid = 2;
+    int lWidth = 0;
+    int lHeight = 0;
+
+    public int nivelBrilho = 300;
+
+    public int xA = 0;
+    public int yA = 0;
+
+    public int limitBusca = 250;
+
+    ArrayList<Integer> lx = new ArrayList<>();
+    ArrayList<Integer> ly = new ArrayList<>();
+
+    
+    int maxTentavias=9000;
+    int tentativas=0;
+    
+   
+
+    int cr = 0;
+
+    public BufferedImage pegaObjetos_Novo(BufferedImage image, BufferedImage baseImage) {
+        System.out.println("Pega Objetos");
+        anR.clear();
+
+        BufferedImage output = new BufferedImage(image.getWidth(),
+                image.getHeight(), BufferedImage.TYPE_INT_RGB);
+        int pPixel = 0;
+
+        lWidth = image.getWidth();
+        lHeight = image.getHeight();
+
+        for (int y = 0; y < image.getHeight() - 5; y++) {
+
+            for (int x = 0; x < image.getWidth() - 5; x++) {
+
+                // -16777216
+                if (!isFundo(x, y, image.getRGB(x, y)) && !isFundoArea(x, y, image, 5)) {
+
+                    boolean existe = false;
+
+                    for (int ca = 0; ca < anR.size(); ca++) {
+
+                        if (x >= anR.get(ca).xR && y >= anR.get(ca).yR
+                                && x <= anR.get(ca).xR + anR.get(ca).lR && y <= anR.get(ca).yR + anR.get(ca).aR) {
+
+                            existe = true;
+                            break;
+                        }
+
+                    }
+
+                    if (existe) {
+                        continue;
+                    }
+
+                    lx.clear();;
+                    ly.clear();
+                    cr = 0;
+                    
+                        tentativas=0;
+
+                    validaPreenchimento(image, x, y);
+
+                    int xI = Integer.MAX_VALUE;
+                    int yI = Integer.MAX_VALUE;
+                    int lI = 0;
+                    int aI = 0;
+
+                    for (int lxy = 0; lxy < lx.size(); lxy++) {
+
+                        if (xI > lx.get(lxy)) {
+
+                            xI = lx.get(lxy);
+                        }
+
+                        if (yI > ly.get(lxy)) {
+
+                            yI = ly.get(lxy);
+                        }
+
+                        if (lI < lx.get(lxy)) {
+
+                            lI = lx.get(lxy);
+                        }
+
+                        if (aI < ly.get(lxy)) {
+
+                            aI = ly.get(lxy);
+                        }
+
+                    }
+
+                    lI = lI - xI;
+                    aI = aI - yI;
+                    if (lI <= tamMin || aI <= tamMin) {
+
+                        System.out.println("Invalido");
+                        continue;
+                    }
+
+                    xI -= 2;
+                    yI -= 2;
+
+                    lI += 5;
+                    aI += 5;
+
+                    BufferedImage bimg = baseImage.getSubimage(xI, yI, lI, aI);
+
+                    anR.add(new AnalisaResultImgBufferedImg(bimg, xI, yI, lI, aI, gerarCorAleatoriamente()));
+
+                }
+            }
+
+        }
+        return output;
+    }
+
+    public void validaPreenchimento(BufferedImage image, int x, int y) {
+
+        try {
+            
+            if(tentativas>=maxTentavias){
+                return;
+            }
+            
+            tentativas++;
+
+            if (x > 1 && y > 1 && x < lWidth - 2 && y < lHeight - 2 && image.getRGB(x, y) == diffFundo && !existXY(x, y)) {
+
+                lx.add(x);
+                ly.add(y);
+
+                if (!existXY(x + incvalid, y)) {
+                    validaPreenchimento(image, x + incvalid, y);
+
+                }
+                if (!existXY(x - incvalid, y)) {
+                    validaPreenchimento(image, x - incvalid, y);
+                }
+                if (!existXY(x, y + incvalid)) {
+                    validaPreenchimento(image, x, y + incvalid);
+                }
+                if (!existXY(x, y - incvalid)) {
+                    validaPreenchimento(image, x, y - incvalid);
+                }
+
+            }
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+
+    }
+
+    public boolean existXY(int x, int y) {
+
+        for (int cont = 0; cont < lx.size(); cont++) {
+
+            if (lx.get(cont).intValue() == x && ly.get(cont).intValue() == y) {
+                return true;
+            }
+
+        }
+        return false;
+    }
+
+    public boolean validaRegiao(int x, int y, int X, int Y) {
+
+        int dist = 3;
+        boolean vx = false, vy = false;
+
+        for (int cont = 0; cont < dist; cont++) {
+
+            if (x == X + cont || x == cont - X) {
+
+                vx = true;
+
+            }
+
+            if (y == Y + cont || y == cont - Y) {
+
+                vy = true;
+
+            }
+
+        }
+
+        return vx && vy;
+
+    }
+
+    public int[] validaPonto(BufferedImage image, int x, int y) {
+
+        if (validaPosicao(x + 1, y) && !isFundo(x + 1, y, image.getRGB(x + 1, y))) {
+
+            return validaBranco(image, x, y, 0);
+        }
+
+        if (validaPosicao(x + 1, y + 1) && !isFundo(x + 1, y + 1, image.getRGB(x + 1, y + 1))) {
+
+            return validaBranco(image, x, y, 1);
+        }
+
+        if (validaPosicao(x, y + 1) && !isFundo(x, y + 1, image.getRGB(x, y + 1))) {
+
+            return validaBranco(image, x, y, 2);
+        }
+
+        if (validaPosicao(x - 1, y + 1) && !isFundo(x - 1, y + 1, image.getRGB(x - 1, y + 1))) {
+
+            return validaBranco(image, x, y, 3);
+        }
+
+        if (validaPosicao(x - 1, y) && !isFundo(x - 1, y, image.getRGB(x - 1, y))) {
+
+            return validaBranco(image, x, y, 4);
+        }
+
+        if (validaPosicao(x - 1, y - 1) && !isFundo(x - 1, y - 1, image.getRGB(x - 1, y - 1))) {
+
+            return validaBranco(image, x, y, 5);
+        }
+
+        if (validaPosicao(x, y - 1) && !isFundo(x, y - 1, image.getRGB(x, y - 1))) {
+
+            return validaBranco(image, x, y, 6);
+        }
+
+        if (validaPosicao(x + 1, y - 1) && !isFundo(x + 1, y - 1, image.getRGB(x + 1, y - 1))) {
+
+            return validaBranco(image, x, y, 7);
+        }
+
+        return null;
+    }
+
+    public int[] validaBranco(BufferedImage image, int x, int y, int iStart) {
+
+        for (int cont = 0; cont < 10; cont++) {
+
+            if (!validaPosicao(x + 1, y) && iStart == 0 || iStart == 0 && isFundo(x + 1, y, image.getRGB(x + 1, y))) {
+
+                return new int[]{x + 1, y};
+            }
+
+            if (!validaPosicao(x + 1, y + 1) && iStart == 1 || iStart == 1 && isFundo(x + 1, y + 1, image.getRGB(x + 1, y + 1))) {
+
+                return new int[]{x + 1, y + 1};
+            }
+
+            if (!validaPosicao(x, y + 1) && iStart == 2 || iStart == 2 && isFundo(x, y + 1, image.getRGB(x, y + 1))) {
+
+                return new int[]{x, y + 1};
+            }
+
+            if (!validaPosicao(x - 1, y + 1) && iStart == 3 || iStart == 3 && isFundo(x - 1, y + 1, image.getRGB(x - 1, y + 1))) {
+
+                return new int[]{x - 1, y + 1};
+            }
+
+            if (!validaPosicao(x - 1, y) && iStart == 4 || iStart == 4 && isFundo(x - 1, y, image.getRGB(x - 1, y))) {
+
+                return new int[]{x - 1, y};
+            }
+
+            if (!validaPosicao(x - 1, y - 1) && iStart == 5 || iStart == 5 && isFundo(x - 1, y - 1, image.getRGB(x - 1, y - 1))) {
+
+                return new int[]{x - 1, y - 1};
+            }
+
+            if (!validaPosicao(x, y - 1) && iStart == 6 || iStart == 6 && isFundo(x, y - 1, image.getRGB(x, y - 1))) {
+
+                return new int[]{x, y - 1};
+            }
+
+            if (!validaPosicao(x + 1, y - 1) && iStart == 7 || iStart == 7 && isFundo(x + 1, y - 1, image.getRGB(x + 1, y - 1))) {
+
+                return new int[]{x + 1, y - 1};
+            }
+
+            iStart++;
+
+            if (iStart == 8) {
+
+                iStart = 0;
+            }
+
+        }
+
+        return null;
+
+    }
+
+    public boolean validaPosicao(int x, int y) {
+
+        return x > 0 && y > 0 && x < lWidth - 2 && y < lHeight - 2;
+    }
+
+    public Color gerarCorAleatoriamente() {
+        Random randColor = new Random();
+        int r = randColor.nextInt(256);
+        int g = randColor.nextInt(256);
+        int b = randColor.nextInt(256);
+        return new Color(r, g, b);
+    }
+
+    public BufferedImage checaImagem(BufferedImage image) {
+        if (pixels == null || pixels.size() == 0) {
+            return image;
+        }
+
+        BufferedImage output = new BufferedImage(image.getWidth(),
+                image.getHeight(), BufferedImage.TYPE_INT_RGB);
+
+        lWidth = image.getWidth();
+        lHeight = image.getHeight();
+
+        for (int y = 0; y < image.getHeight(); y += inc) {
+
+            for (int x = 0; x < image.getWidth(); x += inc) {
+
+                if (!isFundoCheca(x, y, image.getRGB(x, y))) {
+                    output.setRGB(x, y, diffFundo);
+                } else {
+                    output.setRGB(x, y, image.getRGB(x, y));
+                }
+
+            }
+
+        }
+
+//        for (int y = 0; y < output.getHeight(); y += inc) {
+//
+//            for (int x = 0; x < output.getWidth(); x += inc) {
+//
+//                if (output.getRGB(x, y) == diffFundo) {
+//                    rodeiaPixel(x, y, output);
+//                }
+//
+//            }
+//
+//        }
+//        try{
+//        output.setRGB(xA, yA, Color.RED.getRGB());
+//        output.setRGB(xA + 1, yA + 1, Color.RED.getRGB());
+//        output.setRGB(xA + 2, yA + 2, Color.RED.getRGB());
+//        output.setRGB(xA + 3, yA + 3, Color.RED.getRGB());
+//        output.setRGB(xA + 4, yA + 4, Color.RED.getRGB());
+//        output.setRGB(xA + 5, yA + 5, Color.RED.getRGB());
+//        }catch(Exception e){
+//            e.printStackTrace();
+//        }
+        return output;
+    }
+
+    public void rodeiaPixel(int x, int y, BufferedImage image) {
+
+        for (int cx = 0; cx < inc + 4; cx++) {
+            for (int cy = 0; cy < inc + 4; cy++) {
+
+                image.setRGB(x, y, diffFundo);
+
+            }
+
+        }
+    }
+
+    public int calibrarBranco(BufferedImage image) {
+        calibrado = true;
+        for (int y = 0; y < image.getHeight(); y += inc) {
+
+            for (int x = 0; x < image.getWidth(); x += inc) {
+
+                Color cp = new Color(image.getRGB(x, y));
+                int dr = cp.getRed();
+                int dg = cp.getGreen();
+                int db = cp.getBlue();
+                if (nivelBrilho > Math.sqrt(0.299 * dr * dr + 0.587 * dg * dg + 0.114 * db * db)) {
+                    calibrado = false;
+                    nivelBrilho = (int) Math.sqrt(0.299 * dr * dr + 0.587 * dg * dg + 0.114 * db * db);
+                }
+
+            }
+
+        }
+
+        return nivelBrilho;
+    }
+
+    public boolean isFundo(int rgb) {
+
+        return rgb != diffFundo;
+    }
+
+    public boolean isFundoCheca(int x, int y, int pixel) {
+        Color cpf = new Color(pixel);
+
+        for (int[][] xy : pixels) {
+
+            if (x < xy.length && y < xy[0].length) {
+
+                Color cp = new Color(xy[x][y]);
+
+                if (isValidFundo(cpf, cp)) {
+
+                    return true;
+                }
+            }
+
+        }
+
+        return false;
+    }
+
+    public boolean isFundo(int x, int y, int pixel) {
+
+        if (true) {
+            return isFundo(pixel);
+        }
+        Color cpf = new Color(pixel);
+
+        for (int[][] xy : pixels) {
+
+            Color cp = new Color(xy[x][y]);
+
+            if (isValidFundo(cpf, cp)) {
+
+                return true;
+            }
+
+        }
+
+        return false;
+    }
+
+    public boolean isFundoArea(int x, int y, BufferedImage bImg, int area) {
+
+        for (int[][] xy : pixels) {
+            for (int validy = 0; validy < area; validy++) {
+                for (int validx = 0; validx < area; validx++) {
+
+                    if (bImg.getRGB(validx + x, validy + y) != diffFundo) {
+
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean isValidFundo(Color c1, Color c2) {
+        int drf = c1.getRed();
+        int dgf = c1.getGreen();
+        int dbf = c1.getBlue();
+
+        int dr = c2.getRed();
+        int dg = c2.getGreen();
+        int db = c2.getBlue();
+
+        drf = drf > dr ? drf - dr : dr - drf;
+        dgf = dgf > dg ? dgf - dg : dg - dgf;
+        dbf = dbf > db ? dbf - db : db - dbf;
+
+        return drf < mliar && dgf < mliar && dbf < mliar;
+
+    }
+
+    public boolean isFundo(BufferedImage image, int x, int y, int incr) {
+
+        boolean isFundo = false;
+        for (int xc = 0; xc < incr; xc++) {
+
+            for (int yc = 0; yc < incr; yc++) {
+                Color cp = new Color(image.getRGB(x + xc, y + yc));
+                int dr = cp.getRed();
+                int dg = cp.getGreen();
+                int db = cp.getBlue();
+
+                if (Math.sqrt(0.299 * dr * dr + 0.587 * dg * dg + 0.114 * db * db) >= nivelBrilho) {
+
+                    return true;
+                }
+            }
+
+        }
+        return false;
+    }
+
+    public int calibrarBrancoPixels(BufferedImage image) {
+
+        int xy[][] = new int[image.getWidth()][image.getHeight()];
+
+        System.out.println("Entrou ");
+        for (int y = 0; y < image.getHeight(); y++) {
+
+            for (int x = 0; x < image.getWidth(); x++) {
+                xy[x][y] = image.getRGB(x, y);
+
+            }
+
+        }
+        if (pixels == null) {
+
+            pixels = new ArrayList<>();
+        }
+
+        pixels.add(xy);
+        System.out.println("Saiu ");
+
+        try {
+            IO.inserir("XY", pixels);
+        } catch (IOException ex) {
+            Logger.getLogger(TrataImagensCamera.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return pixels.size();
+
+    }
+}

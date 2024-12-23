@@ -140,9 +140,10 @@ public class NeuronPC
 
     protected void toCorrectWeights(byte[] valuesTrainning, byte[] outExpected) {
 
+         
         for (int contS = 0; contS < outExpected.length; contS++) {
             byte v = outExpected[contS];
-            for (int cont = 0; cont < this.weights.length; cont++) {
+            for (int cont = 0; this.weights!= null &&cont < this.weights.length; cont++) {
                 float expectedValue = v;
                 expectedValue = expectedValue * valuesTrainning[cont];
                 float out = expectedValue > 0 ? 1 : 0;

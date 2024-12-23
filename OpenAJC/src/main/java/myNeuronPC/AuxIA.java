@@ -15,29 +15,36 @@ import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JProgressBar;
+import tratamentos.TrataImagens;
 
 public class AuxIA implements Serializable {
 
+    public TrataImagens trataImagens;
+
+    public AuxIA() {
+
+        trataImagens = new TrataImagens();
+
+    }
+
     public ArrayList<String> valuesPossible = new ArrayList();
 
-    ArrayList<coordCutIMG> cdC = new ArrayList();
+    public ArrayList<coordCutIMG> cdC = new ArrayList();
 
-    int sizeRecX = 16;
-    int sizeRecY = 16;
-    int qtdQdRec = 4;
-    int bdiv = 2;
+    public int sizeRecX = 18;
+    public int sizeRecY = 18;
+    public int qtdQdRec = 4;
+    public int bdiv = 2;
 
-    int xP = 80;
-    int yP = 80;
+    public int xP = 80;
+    public int yP = 80;
 
-    int ini = 0;
+    public int ini = 0;
 
-    int sizeTam = 2, size = 2;
+    public int sizeTam = 2, size = 2;
 
     public int nresult = -1;
-
-    ArrayList<String> itens = new ArrayList<>();
-    ArrayList<ArrayList<OpenACJ>> nr = new ArrayList<>();
+    public ArrayList<ArrayList<OpenACJ>> nr = new ArrayList<>();
 
     public void zera() {
         nr = new ArrayList<>();
@@ -45,7 +52,7 @@ public class AuxIA implements Serializable {
 
     public void setValTrainningByteAll(int index, BufferedImage img, byte result) {
 
-        for (int vcont = 0; vcont <= 360; vcont += 40) {
+        for (int vcont = 0; vcont <= 360; vcont += 20) {
 
             setValTrainningByte(index, rotateImageByDegrees(img,
                     vcont), result);
@@ -53,8 +60,7 @@ public class AuxIA implements Serializable {
     }
 
     public void setValTrainningByte(int index, BufferedImage img, byte result) {
-
-        updateCoord(img);
+        ArrayList<coordCutIMG> cdC = new ArrayList(updateCoord(img));
 
         int size = -1;
         if (index >= nr.size()) {
@@ -192,7 +198,8 @@ public class AuxIA implements Serializable {
 
     public int[] getResultCont(BufferedImage img) {
 
-        updateCoord(img);
+        ArrayList<coordCutIMG> cdC = new ArrayList(updateCoord(img));
+
         int conCertResult = -1;
         int contresult = 0;
         for (int cont = 0; cont < nr.size(); cont++) {
@@ -253,9 +260,9 @@ public class AuxIA implements Serializable {
         return bi;
     }
 
-    public void updateCoord(BufferedImage img) {
+    public ArrayList<coordCutIMG> updateCoord(BufferedImage img) {
 
-        cdC.clear();
+        ArrayList<coordCutIMG> cdC = new ArrayList();
 
         int xqMin = img.getWidth() / (qtdQdRec / bdiv);
         int yqMin = img.getHeight() / (qtdQdRec / bdiv);
@@ -283,6 +290,8 @@ public class AuxIA implements Serializable {
             }
 
         }
+        this.cdC = cdC;
+        return cdC;
     }
 
     public coordCutIMG coordenadasCorte(int xI, int yI, int largX, int altX) {
