@@ -174,6 +174,32 @@ public class OpenACJ
         }
     }
 
+    
+    
+    
+    public void addValTrainningNewBytesToBits(byte dados[], byte... valoreEsperado) {
+
+ 
+        NumberToBits n = new NumberToBits(8 * 4, dados.length, 1, dados.clone(), valoreEsperado);
+
+        n.setFileName("");
+        this.inTrainningBits.add(n);
+
+        for (int cont = 0; cont < inTrainningBits.size() - 1; cont++) {
+
+            if (checkVals(inTrainningBits.get(cont),
+                    inTrainningBits.get(inTrainningBits.size() - 1))) {
+                inTrainningBits.remove(inTrainningBits.size() - 1);
+            }
+
+        }
+
+    }
+    
+    
+    
+    
+    
     public boolean checkVals(NumberToBits n1, NumberToBits n2) {
 
         byte[] vet1 = n1.vetbits;
@@ -440,18 +466,8 @@ public class OpenACJ
         long tempoInicial = System.currentTimeMillis();
 
         OpenACJ nr = new OpenACJ(4);
-        nr.setValForTraining(0, PAR);
-        nr.setValForTraining(1, IMPAR);
-        nr.setValForTraining(2, IMPAR);
-        nr.setValForTraining(3, PAR);
-        nr.TrainingNewOpenACJ(4, 4);
-
-        System.out.println("Saida " + nr.outNeuronCompletResult(nr.getValueTestBits(0)));
-        System.out.println("Saida " + nr.outNeuronCompletResult(nr.getValueTestBits(1)));
-
-        System.out.println("Saida " + nr.outNeuronCompletResult(nr.getValueTestBits(2)));
-
-        System.out.println("Saida " + nr.outNeuronCompletResult(nr.getValueTestBits(3)));
+        nr.addValTrainningNewBytesToBits(new String("teste").getBytes(), new String("teste").getBytes());
+    
 
         if (true) {
             return;

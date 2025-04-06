@@ -63,6 +63,17 @@ public class NumberToBits
         NumeroParaBytesBits(mult, valor);
 
     }
+    
+        public NumberToBits(int mult, int maxbits, int basemulti, byte[] valor, byte... valorEsperado) {
+        this.valueExpected = valorEsperado;
+        this.basemulti = basemulti;
+
+        this.maxbits = maxbits = mult * maxbits;
+        this.vetbits = new byte[maxbits];
+        NumeroParaBytesBits(mult, valor);
+
+    }
+
 
     public NumberToBits(int maxbits, int basemulti, long valor, byte... valorEsperado) {
         this.value = valor;
@@ -170,6 +181,31 @@ public class NumberToBits
             } else {
                 this.vetbits[cont] = 0;
             }
+        }
+
+        return this;
+    }
+    
+    
+     public NumberToBits NumeroParaBytesBits(int mult, byte[] valor) {
+        int m = 0, n = 222222;
+
+        int index = 0;
+
+        for (byte b : valor) {
+
+            BitSet bits = fromLong(b);
+
+            for (int cont = 0; cont < mult; cont++) {
+                if (bits.length() > cont) {
+                    this.vetbits[index] = (byte) (bits.get(cont) ? 1 : 0);
+                } else {
+                    this.vetbits[index] = 0;
+                }
+
+                index++;
+            }
+
         }
 
         return this;

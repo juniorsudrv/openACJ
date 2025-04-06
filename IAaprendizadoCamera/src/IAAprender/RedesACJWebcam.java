@@ -30,6 +30,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import myNeuronPC.AuxIA;
 import myNeuronPC.OpenACJ;
 import teste.DecodeAndPlayVideo;
@@ -40,6 +42,106 @@ import tratamentos.AnalisaResultImgBufferedImg;
  * @author junior
  */
 public class RedesACJWebcam extends javax.swing.JFrame {
+
+    class ContarItens {
+
+        public ArrayList<Integer> x = new ArrayList();
+        public ArrayList<Integer> y = new ArrayList();
+
+        public int tempoValido = 0;
+
+        public int contador = 0;
+        public JLabel nomeCampo = new JLabel();
+        public JLabel contaCampo = new JLabel("0");
+
+        public ContarItens() {
+
+            nomeCampo.setFont(new Font(Font.SERIF, Font.BOLD, 19));
+            contaCampo.setFont(new Font(Font.SERIF, Font.BOLD, 19));
+            nomeCampo.setForeground(Color.BLUE);
+            contaCampo.setForeground(Color.GREEN);
+
+        }
+    }
+
+    boolean contadorAtivo = false;
+
+    ArrayList<ContarItens> itensContador = new ArrayList();
+
+    class ContaObjetos extends Thread {
+
+        public void run() {
+
+            do {
+
+                try {
+                    Thread.sleep(800);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(RedesACJWebcam.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                if (anR == null || anR.size() == 0) {
+
+                    for (ContarItens cItens : itensContador) {
+
+                        cItens.tempoValido = 0;
+                        cItens.x.clear();
+                        cItens.y.clear();
+
+                    }
+
+                } else if (anR.size() > 0) {
+
+                    try {
+                        for (int cont = 0; cont < anR.size(); cont++) {
+
+                            for (ContarItens cItens : itensContador) {
+
+                                if (anR.get(cont).result.contentEquals(cItens.nomeCampo.getText())
+                                        && validaValores(cItens.x, anR.get(cont).xR)
+                                        && validaValores(cItens.y, anR.get(cont).yR)) {
+
+                                    cItens.tempoValido++;
+                                    if (cItens.tempoValido > 2) {
+                                        cItens.tempoValido = 0;
+                                        cItens.x.add(anR.get(cont).xR);
+                                        cItens.y.add(anR.get(cont).yR);
+                                        cItens.contaCampo.setText((Integer.parseInt(cItens.contaCampo.getText()) + 1) + "");
+                                    }
+                                }
+
+                            }
+
+                        }
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                    }
+                }
+            } while (contadorAtivo);
+
+        }
+
+        public boolean validaValores(ArrayList<Integer> vr, int v2) {
+
+            boolean valida = true;
+            for (int v1 : vr) {
+
+                if ((v1 == 0) || (v1 > v2 ? v1 - v2 > 20 : v2 - v1 > 20)) {
+
+                } else {
+
+                    valida = false;
+                }
+
+            }
+
+            return valida;
+        }
+
+    }
+
+    public TrataImagens trataImagens_ = new TrataImagens();
+
     public ArrayList<AnalisaResultImgBufferedImg> anR = new ArrayList<>();
     public ArrayList<AnalisaResultImgBufferedImg> rTreino = new ArrayList<>();
 
@@ -50,7 +152,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
     Image fundoL = null;
     public BufferedImage fundo = null;
-
+    public Image fundoWork = null;
     static byte SIM = 2;
     static byte NAO = -2;
     AuxIA ia = new AuxIA();
@@ -58,7 +160,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
     int xI = 0, yI = 0;
 
-    BufferedImage imagem = null;
+    public BufferedImage imagem = null;
     Webcam webcam = null;
 
     String result = "";
@@ -73,13 +175,16 @@ public class RedesACJWebcam extends javax.swing.JFrame {
     RecorteAtual rec = null;
 
     public boolean usarCamera = true;
+    public boolean usarVideo = false;
     public boolean paraCamera = false;
+
+    public boolean trabalhando = false;
 
     public RedesACJWebcam() {
         rec = new RecorteAtual();
         rec.setVisible(true);
         initComponents();
-       
+
         temp = new File("temp.png");
 //        try {
 //            temp.createNewFile();
@@ -91,17 +196,21 @@ public class RedesACJWebcam extends javax.swing.JFrame {
             @Override
             public void run() {
 
-                Webcam fw = null;
-                for (Webcam w : Webcam.getWebcams()) {
-                    fw = w;
+                if (usarCamera) {
 
+                    Webcam fw = null;
+                    for (Webcam w : Webcam.getWebcams()) {
+                        fw = w;
+
+                    }
+
+                    webcam = fw;
+                    webcam.setViewSize(WebcamResolution.VGA.getSize());
+
+                    webcam.open();
                 }
 
-                webcam = fw;
-                webcam.setViewSize(WebcamResolution.VGA.getSize());
-
                 treino_progress.setValue(10);
-                webcam.open();
 
                 if (ia == null) {
                     ia = new AuxIA();
@@ -127,7 +236,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                 try {
                     rTreino = (ArrayList<AnalisaResultImgBufferedImg>) IO.ler("rTreino");
                 } catch (Exception ex) {
-                   
+
                     Logger.getLogger(SetaRegiaoTreino.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
@@ -233,8 +342,12 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
         int vcont = 0;
 
+        int countFundo = 0;
+
         @Override
         public void paintComponent(Graphics g) {
+
+            g.setFont(new Font("Bitmap", Font.BOLD, 20));
 
             if (getWidth() > 5 && fundo == null) {
 
@@ -246,7 +359,11 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                 }
             }
 
-            if (usarCamera && webcam != null && (local = webcam.getImage()) != null) {
+            if (usarVideo && (fundoWork != null)) {
+                trabalhaObjetos();
+                g.drawImage(fundo, 0, 0, pracha_camera);
+                trabalhando = false;
+            } else if (usarCamera && webcam != null && (local = webcam.getImage()) != null) {
 
                 //imagem = MeuAJC.image2BlackWhiteTest(local);
                 //JCanny.CannyEdges(local, 1, 0.55);//  MeuAJC.image2BlackWhiteTest(local) ;
@@ -268,7 +385,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
                 imagem = !paraCamera ? toBufferedImage(fundo.getScaledInstance(pracha_camera.getWidth(), pracha_camera.getHeight(), Image.SCALE_AREA_AVERAGING)) : imagem;
 
-                g.drawImage(reconheceMulti || treinaTempoReal ? imagem : trataImagens.checaImagem(imagem), 0, 0, pracha_camera);
+                g.drawImage(trataImagens.checaImagem(imagem), 0, 0, pracha_camera);
             }
 
             try {
@@ -290,7 +407,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                 }
                 for (int cont = 0; cont < anR.size(); cont++) {
 
-                    AnalisaResultImgBufferedImg an = trataImagens.anR.get(cont);
+                    AnalisaResultImgBufferedImg an = anR.get(cont);
 
                     g.setColor(an.cor);
                     g.drawString(an.iIndexResult + "_" + an.acertosResult, an.xR, an.yR - 10);
@@ -315,6 +432,13 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                     }
                 }
 
+                if (contadorAtivo) {
+
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.setColor(Color.BLUE);
+                    g2.fill3DRect(0, pracha_camera.getHeight() / 3, imagem.getWidth(), 5, true);
+
+                }
 //               // for (int cont = 0; cont < anR.size(); cont++) 
 //                {
 //
@@ -378,8 +502,9 @@ public class RedesACJWebcam extends javax.swing.JFrame {
             } catch (Exception e) {
             }
 
-            pracha_camera.repaint();
-
+            if (!usarVideo) {
+                pracha_camera.repaint();
+            }
         }
 
     }
@@ -402,11 +527,26 @@ public class RedesACJWebcam extends javax.swing.JFrame {
     }
 
     public void preencheRedes() {
+
+        for (ContarItens cI : itensContador) {
+
+            contaP.remove(cI.contaCampo);
+            contaP.remove(cI.nomeCampo);
+        }
+
+        itensContador.clear();
+
         comb_redes.removeAllItems();
 
         for (String s : ia.valuesPossible) {
 
             comb_redes.addItem(s);
+
+            ContarItens cI = new ContarItens();
+            itensContador.add(cI);
+            cI.nomeCampo.setText(s);
+            contaP.add(cI.nomeCampo);
+            contaP.add(cI.contaCampo);
         }
     }
 
@@ -425,44 +565,28 @@ public class RedesACJWebcam extends javax.swing.JFrame {
     boolean treinoa = false;
 
     boolean cali = false;
+
     int inc = 1;
 
     int nivelBrilho = 300;
 
-    public BufferedImage checaImagem(BufferedImage image) {
-
-        if (!treinoa) {
-            return image;
-        }
-        int GREEN = Color.GREEN.getRGB();
-
-        BufferedImage output = new BufferedImage(image.getWidth(),
-                image.getHeight(), BufferedImage.TYPE_INT_RGB);
-
-        int lWidth = image.getWidth();
-        int lHeight = image.getHeight();
-
-        for (int y = 0; y < image.getHeight(); y += inc) {
-
-            for (int x = 0; x < image.getWidth(); x += inc) {
-
-                int rgb = image.getRGB(x, y);
-
-                if (!isFundo(x, y, rgb)) {
-                    output.setRGB(x, y, GREEN);
-                } else {
-                    output.setRGB(x, y, rgb);
-                }
-
-            }
-
-        }
-
-        acj.TrainingNewOpenACJ(2, 2);
-        return output;
-    }
-
     public ArrayList<int[][]> pixels = new ArrayList();
+
+    public void trabalhaObjetos() {
+
+        if (fundo != null) {
+
+            imagem = fundo = toBufferedImage(fundoWork);
+
+            trataImagens.pegaObjetos_Novo(trataImagens.checaImagem(imagem), imagem);
+
+            anR = trataImagens.anR;
+
+            System.out.println("ANR " + anR.size());
+
+            trataImagens.calibrarBrancoPixels(imagem, 0);
+        }
+    }
 
     public boolean isFundo(int x, int y, int pixel) {
 
@@ -519,6 +643,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
         jButton11 = new javax.swing.JButton();
         jButton14 = new javax.swing.JButton();
         treino_progress = new javax.swing.JProgressBar();
+        jButton12 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         progresssos = new javax.swing.JPanel();
         totalObjetos = new javax.swing.JLabel();
@@ -540,6 +665,9 @@ public class RedesACJWebcam extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         tamFileira = new javax.swing.JTextField();
         neuronios = new javax.swing.JTextField();
+        jButton4 = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        contaP = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -664,6 +792,13 @@ public class RedesACJWebcam extends javax.swing.JFrame {
             }
         });
 
+        jButton12.setText("Ativar Contagem");
+        jButton12.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton12ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout painelLayout = new javax.swing.GroupLayout(painel);
         painel.setLayout(painelLayout);
         painelLayout.setHorizontalGroup(
@@ -698,9 +833,12 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                                 .addGap(31, 31, 31))))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, painelLayout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(bt_reconhecer)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(resultado, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(painelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jButton12)
+                            .addGroup(painelLayout.createSequentialGroup()
+                                .addComponent(bt_reconhecer)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(resultado, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap())
         );
         painelLayout.setVerticalGroup(
@@ -723,14 +861,17 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                     .addGroup(painelLayout.createSequentialGroup()
                         .addGroup(painelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(painelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                .addComponent(jButton10)
-                                .addComponent(jButton11)
-                                .addComponent(jButton14)
-                                .addComponent(jButton6)))
+                            .addGroup(painelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jButton14, javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addGroup(painelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(jButton10)
+                                    .addComponent(jButton11)
+                                    .addComponent(jButton6))))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(memoria, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton12)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(painelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(resultado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(bt_reconhecer))
@@ -793,7 +934,10 @@ public class RedesACJWebcam extends javax.swing.JFrame {
         });
 
         jSlider1.setMaximum(255);
-        jSlider1.setValue(45);
+        jSlider1.setMinorTickSpacing(1);
+        jSlider1.setPaintLabels(true);
+        jSlider1.setPaintTicks(true);
+        jSlider1.setSnapToTicks(true);
         jSlider1.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 jSlider1StateChanged(evt);
@@ -844,6 +988,13 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
         neuronios.setText("2");
 
+        jButton4.setText("Pegar Objetos");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -877,20 +1028,23 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(valueCalibrado, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(32, 32, 32))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(bt_treinar1, javax.swing.GroupLayout.DEFAULT_SIZE, 259, Short.MAX_VALUE)
+                            .addComponent(jButton17, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addComponent(jButton17, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton13)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton19)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jButton3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jButton9))
-                            .addComponent(bt_treinar1, javax.swing.GroupLayout.PREFERRED_SIZE, 259, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                                .addComponent(jButton9)
+                                .addGap(34, 34, 34)
+                                .addComponent(jButton4))
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGap(33, 33, 33)
+                                .addComponent(jButton13)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jButton19)))))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -904,34 +1058,49 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel3)
-                            .addComponent(tamFileira, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(neuronios, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(numero_coletaid1)))
+                        .addComponent(jLabel3)
+                        .addComponent(tamFileira, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(neuronios, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(numero_coletaid1))
+                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton21, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
-                .addComponent(bt_treinar1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton17)
-                    .addComponent(jButton13)
-                    .addComponent(jButton19)
-                    .addComponent(jButton3)
-                    .addComponent(jButton9))
-                .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(bt_treinar1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButton3)
+                            .addComponent(jButton9))
+                        .addGap(18, 18, 18))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jButton4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jButton17)
+                        .addGap(18, 18, 18))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jButton13)
+                            .addComponent(jButton19))
+                        .addGap(8, 8, 8)))
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(valueCalibrado)))
         );
+
+        jScrollPane2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0), 2));
+
+        contaP.setLayout(new javax.swing.BoxLayout(contaP, javax.swing.BoxLayout.Y_AXIS));
+        jScrollPane2.setViewportView(contaP);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addComponent(painel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -939,16 +1108,22 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(pracha_camera, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 290, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE)
+                            .addComponent(jScrollPane2))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(totalObjetos, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(totalObjetos, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(pracha_camera, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(pracha_camera, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -986,6 +1161,12 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
         reconheceMulti = !reconheceMulti;
 
+        for (ContarItens cItens : itensContador) {
+
+            cItens.contaCampo.setText("0");
+
+        }
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -1010,8 +1191,6 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                         trataImagens.anR.get(cont).acertosResult = result[1];
 
                     }
-                    
-                 
 
                     try {
                         Thread.sleep(1000);
@@ -1020,8 +1199,18 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                         Logger.getLogger(RedesACJWebcam.class
                                 .getName()).log(Level.SEVERE, null, ex);
                     }
-                    
-                      anR = new ArrayList<>( trataImagens.anR);;
+
+                    if (contadorAtivo) {
+                        for (int cont = 0; cont < trataImagens.anR.size(); cont++) {
+
+                            if (trataImagens.anR.get(cont).yR <= (pracha_camera.getHeight() / 3)) {
+
+                                trataImagens.anR.remove(cont);
+                            }
+                        }
+                    }
+
+                    anR = new ArrayList<>(trataImagens.anR);;
 
                 }
 
@@ -1080,8 +1269,21 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
         // TODO add your handling code here:
-
         usarCamera = true;
+
+        if (webcam == null) {
+            Webcam fw = null;
+            for (Webcam w : Webcam.getWebcams()) {
+                fw = w;
+
+            }
+
+            webcam = fw;
+            webcam.setViewSize(WebcamResolution.VGA.getSize());
+
+            webcam.open();
+        }
+
 
     }//GEN-LAST:event_jButton7ActionPerformed
 
@@ -1135,16 +1337,19 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
         usarCamera = false;
+        usarVideo = true;
         new Thread(new Runnable() {
             @Override
             public void run() {
+                FileFilter filter = new FileNameExtensionFilter("Videos", "mp4", "avi");
 
                 JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileFilter(filter);
 
                 fileChooser.showOpenDialog(null);
 
                 try {
-                    dDecodeAndPlayVideo.playVideo(RedesACJWebcam.this, fileChooser.getSelectedFile().getAbsolutePath());
+                    dDecodeAndPlayVideo.playVideoWithoutFrame(RedesACJWebcam.this, fileChooser.getSelectedFile().getAbsolutePath());
 
 // TODO add your handling code here:
                 } catch (InterruptedException ex) {
@@ -1159,6 +1364,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
             }
         }).start();
 
+
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private void jButton10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton10ActionPerformed
@@ -1170,7 +1376,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton11ActionPerformed
 
     private void jButton14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton14ActionPerformed
-         // TODO add your handling code here:
+        // TODO add your handling code here:
 
         paraCamera = !paraCamera;
 
@@ -1265,6 +1471,8 @@ public class RedesACJWebcam extends javax.swing.JFrame {
             //textField.setText(String.valueOf(source.getValue()));
             int power = source.getValue();
 
+            trataImagens_.limiar = power;
+
             trataImagens.mliar = power;
 
             valueCalibrado.setText(power + "");
@@ -1282,15 +1490,20 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
                 do {
 
-                    try {
-                        BufferedImage b = trataImagens.checaImagem(imagem);
-                        ImageIO.write((b), "png", new File("saida.png"));
-                        trataImagens.pegaObjetos_Novo(b, imagem);
-                        totalObjetos.setText(trataImagens.anR.size() + "");
-                        System.out.println("Terminou ");
-                    } catch (IOException ex) {
-                        Logger.getLogger(RedesACJWebcam.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+//                    try {
+                    BufferedImage b = trataImagens.checaImagem(imagem);
+                    //ImageIO.write((b), "png", new File("saida.png"));
+
+                    trataImagens.pegaObjetos_Novo(b, imagem);
+
+                    totalObjetos.setText(trataImagens.anR.size() + "");
+
+                    anR = trataImagens.anR;
+
+                    System.out.println("Terminou ");
+//                    } catch (IOException ex) {
+//                        Logger.getLogger(RedesACJWebcam.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
 
                     try {
                         Thread.sleep(100);
@@ -1307,7 +1520,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
             jButton17.setText("Pegando Objetos!");
             jButton17.setBackground(Color.GREEN);
         } else {
-            jButton17.setText("PEgar objeto !");
+            jButton17.setText("Parado objeto !");
             jButton17.setBackground(Color.YELLOW);
             nresult = -1;
 
@@ -1344,7 +1557,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                             jl.setText("Treinando ...");
 
                             BufferedImage bimg = imagem.getSubimage(rt.xR, rt.yR,
-                                rt.lR, rt.aR);
+                                    rt.lR, rt.aR);
 
                             rec.setImagem_recorte(bimg);
 
@@ -1352,7 +1565,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
                             System.out.println(" result " + result[0] + " " + rt.iIndexResult + " " + rt.nomeRec);
 
-                            if (rt.iIndexResult == result[0] && result[1] >= ia.qtdQdRec ) {
+                            if (rt.iIndexResult == result[0] && result[1] >= ia.qtdQdRec) {
 
                                 // resultado.setText(comb_redes.getItemAt(result[0]));
                                 nresult = ia.nresult;
@@ -1367,13 +1580,13 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                                 for (int cont = 0; cont < comb_redes.getItemCount(); cont++) {
 
                                     bimg = imagem.getSubimage(rt.xR, rt.yR,
-                                        rt.lR, rt.aR);
+                                            rt.lR, rt.aR);
 
                                     //                                    try {
-                                        //                                        ImageIO.write(bimg, "png", new File("image__0.png"));
-                                        //                                    } catch (IOException ex) {
-                                        //                                        Logger.getLogger(RedesACJWebcam.class.getName()).log(Level.SEVERE, null, ex);
-                                        //                                    }
+                                    //                                        ImageIO.write(bimg, "png", new File("image__0.png"));
+                                    //                                    } catch (IOException ex) {
+                                    //                                        Logger.getLogger(RedesACJWebcam.class.getName()).log(Level.SEVERE, null, ex);
+                                    //                                    }
                                     ia.setValTrainningByteAll(cont, bimg, cont == rt.iIndexResult ? SIM : NAO);
 
                                 }
@@ -1387,7 +1600,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
                             } catch (InterruptedException ex) {
                                 Logger.getLogger(RedesACJWebcam.class
-                                    .getName()).log(Level.SEVERE, null, ex);
+                                        .getName()).log(Level.SEVERE, null, ex);
                             }
 
                         }
@@ -1421,7 +1634,6 @@ public class RedesACJWebcam extends javax.swing.JFrame {
         }
         if (treinaTempoReal) {
 
-            // bt_treinar1.setEnabled(false);
             bt_treinar1.setBackground(Color.GREEN);
         } else {
             bt_treinar1.setEnabled(true);
@@ -1433,6 +1645,14 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
     private void jButton21ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton21ActionPerformed
         rTreino.clear();
+
+        try {
+            IO.inserir("rTreino", rTreino);
+        } catch (IOException ex) {
+            Logger.getLogger(SetaRegiaoTreino.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+
     }//GEN-LAST:event_jButton21ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -1454,17 +1674,36 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
     private void jButton20ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton20ActionPerformed
         BufferedImage bimg = imagem.getSubimage(xI, yI,
-            Integer.parseInt(largura.getText()), Integer.parseInt(altura.getText()));
+                Integer.parseInt(largura.getText()), Integer.parseInt(altura.getText()));
 
         new SetaRegiaoTreino(xI, yI, Integer.parseInt(largura.getText()), Integer.parseInt(altura.getText()),
-            comb_redes, rTreino, bimg).setVisible(true);
+                comb_redes, rTreino, bimg).setVisible(true);
 
     }//GEN-LAST:event_jButton20ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+
+        trataImagens_.pegaObjetos(trataImagens_.checaImagem(imagem));
+        totalObjetos.setText(trataImagens_.anR.size() + "");
+
+        anR = trataImagens_.anR;
+
+    }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void jButton12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton12ActionPerformed
+
+        contadorAtivo = true;
+        new ContaObjetos().start();
+
+        jButton12.setEnabled(false);
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton12ActionPerformed
 
     public void atualizaColetas() {
 
         try {
             numero_coletaid1.setText(new File("IMG" + comb_redes.getSelectedItem()).listFiles().length + "");
+
         } catch (Exception e) {
             // e.printStackTrace();
             numero_coletaid1.setText("0");
@@ -1472,7 +1711,6 @@ public class RedesACJWebcam extends javax.swing.JFrame {
     }
 
     public void atualizaColetas_Item_Rede() {
-
         atualizaColetas();
     }
 
@@ -1570,9 +1808,11 @@ public class RedesACJWebcam extends javax.swing.JFrame {
     private javax.swing.JButton bt_reconhecer1;
     private javax.swing.JButton bt_treinar1;
     private javax.swing.JComboBox<String> comb_redes;
+    private javax.swing.JPanel contaP;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton10;
     private javax.swing.JButton jButton11;
+    private javax.swing.JButton jButton12;
     private javax.swing.JButton jButton13;
     private javax.swing.JButton jButton14;
     private javax.swing.JButton jButton17;
@@ -1581,6 +1821,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
     private javax.swing.JButton jButton20;
     private javax.swing.JButton jButton21;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
@@ -1592,6 +1833,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSlider jSlider1;
     private javax.swing.JTextField largura;
     private javax.swing.JTextField memoria;

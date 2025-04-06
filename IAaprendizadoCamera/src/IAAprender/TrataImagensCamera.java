@@ -6,6 +6,7 @@ package IAAprender;
 
 import OpIO.IO;
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.Serializable;
@@ -32,7 +33,7 @@ public class TrataImagensCamera implements Serializable {
 
     }
 
-    public int tamMin = 8;
+    public int tamMin = 5;
     public int mliar = 45;
 
     public int diffFundo = Color.BLACK.getRGB();
@@ -57,15 +58,12 @@ public class TrataImagensCamera implements Serializable {
     ArrayList<Integer> lx = new ArrayList<>();
     ArrayList<Integer> ly = new ArrayList<>();
 
-    
-    int maxTentavias=9000;
-    int tentativas=0;
-    
-   
+    int maxTentavias = 9000;
+    int tentativas = 0;
 
     int cr = 0;
 
-    public BufferedImage pegaObjetos_Novo(BufferedImage image, BufferedImage baseImage) {
+    public synchronized BufferedImage pegaObjetos_Novo(BufferedImage image, BufferedImage baseImage) {
         System.out.println("Pega Objetos");
         anR.clear();
 
@@ -84,7 +82,6 @@ public class TrataImagensCamera implements Serializable {
                 if (!isFundo(x, y, image.getRGB(x, y)) && !isFundoArea(x, y, image, 5)) {
 
                     boolean existe = false;
-
                     for (int ca = 0; ca < anR.size(); ca++) {
 
                         if (x >= anR.get(ca).xR && y >= anR.get(ca).yR
@@ -96,15 +93,15 @@ public class TrataImagensCamera implements Serializable {
 
                     }
 
-                    if (existe) {
+                    if (existe || anR.size() > 5) {
                         continue;
                     }
 
                     lx.clear();;
                     ly.clear();
                     cr = 0;
-                    
-                        tentativas=0;
+
+                    tentativas = 0;
 
                     validaPreenchimento(image, x, y);
 
@@ -153,23 +150,107 @@ public class TrataImagensCamera implements Serializable {
 
                     BufferedImage bimg = baseImage.getSubimage(xI, yI, lI, aI);
 
-                    anR.add(new AnalisaResultImgBufferedImg(bimg, xI, yI, lI, aI, gerarCorAleatoriamente()));
+                    anR.add(new AnalisaResultImgBufferedImg(bimg, xI, yI, lI, aI, Color.white));
 
                 }
             }
 
         }
+
+        //Avalia interceção
+        removeDuplicatas(anR, baseImage);
+
         return output;
+    }
+
+    public void removeDuplicatas(ArrayList<AnalisaResultImgBufferedImg> anR, BufferedImage baseImage) { 
+        
+
+        for (int cont = 0; cont < anR.size(); cont++) {
+
+            AnalisaResultImgBufferedImg aN = anR.get(cont);
+            ArrayList<AnalisaResultImgBufferedImg> temp = new ArrayList();
+
+            for (int cI = 0; cI < anR.size(); cI++) {
+
+                if (cont != cI) {
+
+                    Rectangle rect1 = new Rectangle(anR.get(cont).xR, anR.get(cont).yR, anR.get(cont).lR, anR.get(cont).aR);
+                    Rectangle rect2 = new Rectangle(anR.get(cI).xR, anR.get(cI).yR, anR.get(cI).lR, anR.get(cI).aR);
+
+                    if (rect1.intersects(rect2)) {
+
+                        temp.add(anR.get(cI));
+
+                    }
+
+                }
+            }
+
+            if (temp.size() > 0) {
+
+                int x = anR.get(cont).xR;
+                int y = anR.get(cont).yR;
+
+                int xW = 0;
+                int yH = 0;
+
+                for (int cI = 0; cI < temp.size(); cI++) {
+
+                    if (x > temp.get(cI).xR) {
+                        x = temp.get(cI).xR;
+
+                    }
+
+                    if (y > temp.get(cI).yR) {
+                        y = temp.get(cI).yR;
+
+                    }
+
+                    if (xW < temp.get(cI).lR) {
+                        xW = temp.get(cI).lR;
+
+                    }
+
+                    if (yH < temp.get(cI).aR) {
+                        yH = temp.get(cI).aR;
+
+                    }
+
+                }
+
+                for (int cI = 0; cI < temp.size(); cI++) {
+
+                    anR.remove(temp.get(cI));
+
+                }
+
+                anR.remove(aN);
+
+                BufferedImage bimg = baseImage.getSubimage(x, y, xW, yH);
+
+                anR.add(new AnalisaResultImgBufferedImg(bimg,
+                         x, y, xW, yH, gerarCorAleatoriamente()));
+
+            }
+
+        }
+ 
+
+//        for (int cI = 0; cI < anR.size(); cI++) {
+//
+//            System.out.println("" + anR.get(cI).toString());
+//        }
     }
 
     public void validaPreenchimento(BufferedImage image, int x, int y) {
 
         try {
-            
-            if(tentativas>=maxTentavias){
+
+            if (tentativas >= maxTentavias) {
                 return;
             }
-            
+
             tentativas++;
 
             if (x > 1 && y > 1 && x < lWidth - 2 && y < lHeight - 2 && image.getRGB(x, y) == diffFundo && !existXY(x, y)) {
@@ -199,11 +280,25 @@ public class TrataImagensCamera implements Serializable {
 
     }
 
-    public boolean existXY(int x, int y) {
+    public void coloriRegiao(int limiar, int x, int y, int max, int may, BufferedImage image) {
+
+        for (int contx = x; contx < x + limiar && contx < max; contx++) {
+
+            for (int conty = y; conty < y + limiar && conty < may; conty++) {
+
+                image.setRGB(contx, conty, diffFundo);
+
+            }
+
+        }
+
+    }
+
+    public synchronized boolean existXY(int x, int y) {
 
         for (int cont = 0; cont < lx.size(); cont++) {
 
-            if (lx.get(cont).intValue() == x && ly.get(cont).intValue() == y) {
+            if (lx.get(cont) != null && lx.get(cont).intValue() == x && ly.get(cont).intValue() == y) {
                 return true;
             }
 
@@ -397,7 +492,16 @@ public class TrataImagensCamera implements Serializable {
 //        }catch(Exception e){
 //            e.printStackTrace();
 //        }
+//        for (int y = 1; y < image.getHeight(); y += inc) {
+//            for (int x = 1; x < image.getWidth(); x += inc) {
+//                if (output.getRGB(x, y) == Color.GREEN.getRGB()) {
+//                    coloriRegiao(10, x, y, lWidth, lHeight, output);
+//                }
+//            }
+//
+//        }
         return output;
+
     }
 
     public void rodeiaPixel(int x, int y, BufferedImage image) {
@@ -482,6 +586,10 @@ public class TrataImagensCamera implements Serializable {
 
     public boolean isFundoArea(int x, int y, BufferedImage bImg, int area) {
 
+        if (pixels == null) {
+            return false;
+        }
+
         for (int[][] xy : pixels) {
             for (int validy = 0; validy < area; validy++) {
                 for (int validx = 0; validx < area; validx++) {
@@ -553,6 +661,40 @@ public class TrataImagensCamera implements Serializable {
             pixels = new ArrayList<>();
         }
 
+        pixels.add(xy);
+        System.out.println("Saiu ");
+
+        try {
+            IO.inserir("XY", pixels);
+        } catch (IOException ex) {
+            Logger.getLogger(TrataImagensCamera.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return pixels.size();
+
+    }
+
+    public int calibrarBrancoPixels(BufferedImage image, int index) {
+
+        int xy[][] = new int[image.getWidth()][image.getHeight()];
+
+        System.out.println("Entrou ");
+        for (int y = 0; y < image.getHeight(); y++) {
+
+            for (int x = 0; x < image.getWidth(); x++) {
+                xy[x][y] = image.getRGB(x, y);
+
+            }
+
+        }
+        if (pixels == null) {
+
+            pixels = new ArrayList<>();
+        }
+
+        if (pixels.size() > 1) {
+            pixels.remove(0);
+        }
         pixels.add(xy);
         System.out.println("Saiu ");
 

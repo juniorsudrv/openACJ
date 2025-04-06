@@ -65,6 +65,7 @@ class Painel_Recorte extends JPanel{
     public void setImagem_recorte(BufferedImage imagem_recorte) {
         this.imagem_recorte = imagem_recorte;
         
+        //System.out.println("im_recorte"+imagem_recorte);
         if(getSize().width!=imagem_recorte.getWidth()||getSize().height!=imagem_recorte.getHeight())
         {
             setSize(imagem_recorte.getWidth()+20, imagem_recorte.getHeight()+20);

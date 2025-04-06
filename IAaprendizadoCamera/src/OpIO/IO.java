@@ -17,7 +17,7 @@
  
  public class IO
  {
-   public static boolean inserir(String nome, Object d) throws IOException {
+   public synchronized static boolean inserir(String nome, Object d) throws IOException {
      try {
        FileOutputStream f = new FileOutputStream(new File(nome));
        ObjectOutputStream o = new ObjectOutputStream(f);
