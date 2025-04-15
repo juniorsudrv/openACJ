@@ -44,6 +44,44 @@ Operações básicas com numeros
                 + saida);
 
 
+
+
+
+Exemplo simples de treino de imagens em diversas pastas 
+
+        //Código exemplo, não pode haver duas imagens iguais (muito parecidas) nas pastas de treino, irá causar um loop infinito
+        //Comece com imagens simples, se for uma imagem de bicicleta ela deve ser apeans isso, não deve haver outros objetos juntos
+        byte yes = 2, no = -2;
+
+        AuxIA auxia = new AuxIA();
+
+        String[] folderTrainn = {"PastaX", "PastaO", "PastaW"};
+
+        for (String folderOK : folderTrainn) {
+            auxia.valuesPossible.add(folderOK);
+        }
+        for (String folderOK : folderTrainn) {
+            File imgs = new File(folderOK);
+
+            for (int count = 0; count < auxia.valuesPossible.size(); count++) {
+                for (File img : imgs.listFiles()) {
+                    System.out.println(count + " " + img.getName() + " " + auxia.valuesPossible.get(count) + " "
+                            + (auxia.valuesPossible.get(count).contentEquals(folderOK) ? yes : no));
+                    auxia.setValTrainningByteAll(count, ImageIO.read(img), auxia.valuesPossible.get(count).contentEquals(folderOK) ? yes : no);
+                }
+
+            }
+
+        }
+        System.out.println("Start Trainning");
+        auxia.trainningStarter(null, 2, 2);
+        System.out.println("Finish Trainning");
+        
+        System.out.println("Result "+auxia.getResult(ImageIO.read(new File("PastaValid").listFiles()[0])));
+        System.out.println("Result "+auxia.getResult(ImageIO.read(new File("PastaValid").listFiles()[1])));
+
+        
+
 Exemplo treinando algumas imagens que estão dentro de pastas
 
 
@@ -97,38 +135,7 @@ Exemplo treinando algumas imagens que estão dentro de pastas
 
 
                 
-Exemplo simples de treino de imagens em diversas pastas 
 
-        //Código exemplo, não pode haver duas imagens iguais (muito parecidas) nas pastas de treino, irá causar um loop infinito
-        //Comece com imagens simples, se for uma imagem de bicicleta ela deve ser apeans isso, não deve haver outros objetos juntos
-        byte yes = 2, no = -2;
-
-        AuxIA auxia = new AuxIA();
-
-        String[] folderTrainn = {"PastaX", "PastaO", "PastaW"};
-
-        for (String folderOK : folderTrainn) {
-            auxia.valuesPossible.add(folderOK);
-        }
-        for (String folderOK : folderTrainn) {
-            File imgs = new File(folderOK);
-
-            for (int count = 0; count < auxia.valuesPossible.size(); count++) {
-                for (File img : imgs.listFiles()) {
-                    System.out.println(count + " " + img.getName() + " " + auxia.valuesPossible.get(count) + " "
-                            + (auxia.valuesPossible.get(count).contentEquals(folderOK) ? yes : no));
-                    auxia.setValTrainningByteAll(count, ImageIO.read(img), auxia.valuesPossible.get(count).contentEquals(folderOK) ? yes : no);
-                }
-
-            }
-
-        }
-        System.out.println("Start Trainning");
-        auxia.trainningStarter(null, 2, 2);
-        System.out.println("Finish Trainning");
-        
-        System.out.println("Result "+auxia.getResult(ImageIO.read(new File("PastaValid").listFiles()[0])));
-        System.out.println("Result "+auxia.getResult(ImageIO.read(new File("PastaValid").listFiles()[1])));
 
 
 
