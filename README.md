@@ -2,7 +2,7 @@
 
 Rede Neural feita totalmente em JAVA.
 
-Projeto permite reconhecimento de imagens, texto e numeros após treino.
+Projeto permite reconhecimento de imagens texto e numeros após treino.
 
 Operacoes Básicas https://youtu.be/NRuFDO2clg4 
 
