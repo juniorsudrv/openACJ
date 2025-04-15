@@ -1,6 +1,8 @@
 # Link de tutorial abaixo 
 Operacoes Básicas https://youtu.be/NRuFDO2clg4 
+
 Treinar a rede neural utilizando um software https://www.youtube.com/watch?v=QumrLZcZ8Lc 
+
 Contando peças de xadrez e dama https://www.youtube.com/watch?v=j8gtOoU2JCc
 
 
