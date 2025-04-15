@@ -55,4 +55,5 @@ Exemplo treinando algumas imagens que estão dentro de pastas
 
         int result[] = ia.getResultCont(ImageIO.read(imgs0[0]));
 
-        System.out.println("Result " + (result[0] == 0 ? "X" : "0"));
+        System.out.println("Result " + (result[0] == 0 ? "X" : result[0] == 1 ? "0" : "W"));
+
