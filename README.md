@@ -1,10 +1,14 @@
 # Link de tutorial abaixo 
 Operacoes Básicas https://youtu.be/NRuFDO2clg4 
+Treinar a rede neural utilizando um software https://www.youtube.com/watch?v=QumrLZcZ8Lc 
+Contando peças de xadrez e dama https://www.youtube.com/watch?v=j8gtOoU2JCc
+
+
 Links jars https://github.com/juniorsudrv/openACJ/issues/1
 
-Exemplo treinando algumas imagens dentro de pastas
+Exemplo treinando algumas imagens que estão dentro de pastas
 
-         //Código exemplo, não pode haver duas imagens iguais (muito parecidas) nas pastas de treino, irá causar um loop infinito
+        //Código exemplo, não pode haver duas imagens iguais (muito parecidas) nas pastas de treino, irá causar um loop infinito
         //Comece com imagens simples, se for uma imagem de bicicleta ela deve ser apeans isso, não deve haver outros objetos juntos
  
         AuxIA ia = new AuxIA();
