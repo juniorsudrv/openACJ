@@ -1,4 +1,9 @@
 # Link de tutorial abaixo 
+
+Rede Neural feita totalmente em JAVA.
+
+Projeto permite reconhecimento de imagens, texto e numeros após treino.
+
 Operacoes Básicas https://youtu.be/NRuFDO2clg4 
 
 Treinar a rede neural de forma dinamica https://www.youtube.com/watch?v=QumrLZcZ8Lc 
