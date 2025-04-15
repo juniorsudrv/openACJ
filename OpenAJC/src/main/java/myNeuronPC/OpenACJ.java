@@ -76,11 +76,11 @@ public class OpenACJ
     }
 
     public static int lenghtImagem(BufferedImage img) {
-        
-        Object ob=img.getRaster().getDataBuffer();
-        
-        return (ob instanceof  java.awt.image.DataBufferInt) ? (((java.awt.image.DataBufferInt) ob).getData()).length:
-                 (((java.awt.image.DataBufferByte) ob).getData()).length;
+
+        Object ob = img.getRaster().getDataBuffer();
+
+        return (ob instanceof java.awt.image.DataBufferInt) ? (((java.awt.image.DataBufferInt) ob).getData()).length
+                : (((java.awt.image.DataBufferByte) ob).getData()).length;
 
     }
 
@@ -174,16 +174,14 @@ public class OpenACJ
         }
     }
 
-    
-    
-    
     public void addValTrainningNewBytesToBits(byte dados[], byte... valoreEsperado) {
 
- 
         NumberToBits n = new NumberToBits(8 * 4, dados.length, 1, dados.clone(), valoreEsperado);
 
+        System.out.println("X" + n.paraStringCast());
+        System.out.println("X" + n.vetbits.length);
         n.setFileName("");
-        this.inTrainningBits.add(n);
+        this.inTrainningBits.add(n.clone());
 
         for (int cont = 0; cont < inTrainningBits.size() - 1; cont++) {
 
@@ -195,11 +193,14 @@ public class OpenACJ
         }
 
     }
-    
-    
-    
-    
-    
+
+    public NumberToBits addValTrainningNewBytesToBitsTeste(byte dados[]) {
+
+        NumberToBits n = new NumberToBits(8 * 4, dados.length, 1, dados.clone(), (byte) 0);
+
+        return n;
+    }
+
     public boolean checkVals(NumberToBits n1, NumberToBits n2) {
 
         byte[] vet1 = n1.vetbits;
@@ -232,7 +233,7 @@ public class OpenACJ
         int[] dados;
 
         dados = ((DataBufferInt) ((valor)).getRaster().getDataBuffer()).getData();
-        
+
         return new NumberToBits(8 * 4, dados.length, 1, dados.clone(), (byte) 0);
 
     }
@@ -431,8 +432,10 @@ public class OpenACJ
     }
 
     static byte PAR = -2, IMPAR = 2;
+    static byte SIM = 2;
+    static byte NAO = -2;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         byte b = 2;
         float t = 0.3f;
@@ -463,95 +466,94 @@ public class OpenACJ
 //        nr.setValForTraining(7, IMPAR);
         //  nr.setValForTraining(4, PAR);
         // nr.showValues();
-        long tempoInicial = System.currentTimeMillis();
-
-        OpenACJ nr = new OpenACJ(4);
-        nr.addValTrainningNewBytesToBits(new String("teste").getBytes(), new String("teste").getBytes());
-    
-
-        if (true) {
-            return;
-        }
+//        long tempoInicial = System.currentTimeMillis();
 //
-//        nr.setValForTraining(0, PAR);
-//        nr.setValForTraining(1, IMPAR);
-//        nr.setValForTraining(2, PAR);
-//        nr.setValForTraining(3, IMPAR);
-// 
-//        nr.limitFileira = 105;
+//        OpenACJ nr = new OpenACJ(70);
+//        nr.addValTrainningNewBytesToBits(new String("OI").getBytes(), PAR);
+//        nr.addValTrainningNewBytesToBits(new String("XA").getBytes(), IMPAR);
+//        nr.TrainingNewOpenACJ(3, 3);
 //
-//        for (int cont = 105; cont > 4; cont--) {
-//            nr.limitFileira = cont;
-//            nr.TrainingNewOpenACJ(6, 6);
-//            System.out.println("VezesTreino  " + nr.countTrainning + " Limite " + cont + " ");
-//        }
-//        //nr.printaValoresPesos();
-//
+//        System.out.println(" "+nr.outNeuronCompletResult(nr.addValTrainningNewBytesToBitsTeste(new String("XA").getBytes())));
+//         System.out.println(" "+nr.outNeuronCompletResult(nr.addValTrainningNewBytesToBitsTeste(new String("OI").getBytes())));
 //        if (true) {
 //            return;
 //        }
-        for (int cont = 105; cont > 4; cont--) {
-            nr = new OpenACJ(16);
-
-            nr.setValForTraining(0, PAR);
-            nr.setValForTraining(1, IMPAR);
-            nr.setValForTraining(2, PAR);
-            nr.setValForTraining(3, IMPAR);
-            nr.setValForTraining(999, IMPAR);
-            nr.setValForTraining(1000, PAR);
-            nr.limitFileira = cont;
-            nr.TrainingNewOpenACJ(3, 3);
-            //2 2 O método foi executado em 5021
-            int aderrado = 0;
-            int c = 2;
-            do {
-//AdErrado 38 Errado 89 -421.6863671271541
-                float s = nr.outNeuronCompletResult(nr.getValueTestBits(
-                        c));
-                if (c % 2 != 0 && s < 0
-                        || c % 2 == 0 && s >= 0) {
-
-//                System.out.println("Certo " + c + " " + nr.outNeuronCompletResult(nr.getValueTestBits(
-//                        c)));
-                } else {
-                    aderrado++;
-                    //   System.out.println(cont + " AdErrado " + aderrado + " Errado " + c + " " + s);
-
-                    nr.setValForTraining(c, (c % 2 == 0) ? PAR : IMPAR);
-                    nr.TrainingContinuesACJ(4, 8);
-
-                }
-
-                c++;
-
-                //System.out.println("" + c);
-                if (c > 10000) {
-                    break;
-                }
-
-            } while (true);
-
-            System.out.println("Finish trainning " + aderrado + " " + cont);
-        }
-// 100 -> 2968
-
-        System.out.println("Time execution " + (System.currentTimeMillis() - tempoInicial));
-
+////
+////        nr.setValForTraining(0, PAR);
+////        nr.setValForTraining(1, IMPAR);
+////        nr.setValForTraining(2, PAR);
+////        nr.setValForTraining(3, IMPAR);
+//// 
+////        nr.limitFileira = 105;
+////
+////        for (int cont = 105; cont > 4; cont--) {
+////            nr.limitFileira = cont;
+////            nr.TrainingNewOpenACJ(6, 6);
+////            System.out.println("VezesTreino  " + nr.countTrainning + " Limite " + cont + " ");
+////        }
+////        //nr.printaValoresPesos();
+////
+////        if (true) {
+////            return;
+////        }
+//        for (int cont = 105; cont > 4; cont--) {
+//            nr = new OpenACJ(16);
+//
+//            nr.setValForTraining(0, PAR);
+//            nr.setValForTraining(1, IMPAR);
+//            nr.setValForTraining(2, PAR);
+//            nr.setValForTraining(3, IMPAR);
+//            nr.setValForTraining(999, IMPAR);
+//            nr.setValForTraining(1000, PAR);
+//            nr.limitFileira = cont;
+//            nr.TrainingNewOpenACJ(3, 3);
+//            //2 2 O método foi executado em 5021
+//            int aderrado = 0;
+//            int c = 2;
+//            do {
+////AdErrado 38 Errado 89 -421.6863671271541
+//                float s = nr.outNeuronCompletResult(nr.getValueTestBits(
+//                        c));
+//                if (c % 2 != 0 && s < 0
+//                        || c % 2 == 0 && s >= 0) {
+//
+////                System.out.println("Certo " + c + " " + nr.outNeuronCompletResult(nr.getValueTestBits(
+////                        c)));
+//                } else {
+//                    aderrado++;
+//                    //   System.out.println(cont + " AdErrado " + aderrado + " Errado " + c + " " + s);
+//
+//                    nr.setValForTraining(c, (c % 2 == 0) ? PAR : IMPAR);
+//                    nr.TrainingContinuesACJ(4, 8);
+//
+//                }
+//
+//                c++;
+//
+//                //System.out.println("" + c);
+//                if (c > 10000) {
+//                    break;
+//                }
+//
+//            } while (true);
+//
+//            System.out.println("Finish trainning " + aderrado + " " + cont);
+//        }
+//// 100 -> 2968
+//
+//        System.out.println("Time execution " + (System.currentTimeMillis() - tempoInicial));
         // System.out.println(nr.outNeuronCompletResult(nr.inTrainningBits.get(1)));
 //        File fileN = new File("E:\\MeusProjetos com IA\\iaAprendizado\\IAaprendizadoCamera\\IMGcopo");
 //        File fileS = new File("E:\\MeusProjetos com IA\\iaAprendizado\\IAaprendizadoCamera\\IMGnaocopo");
 //        File[] nfile = fileN.listFiles();
-//        File[] sfile = fileS.listFiles();
-//
-//        System.out.println("" + OpenACJ.lenghtImagem(sfile[0]));
-//        System.out.println("" + OpenACJ.lenghtImagem(sfile[0]) * 8);
+//        File[] sfile = fileS.listFiles();     
 //
 //        OpenACJ nr = new OpenACJ(OpenACJ.lenghtImagem(sfile[0]) * 8);
 //        OpenACJ nr2 = new OpenACJ(OpenACJ.lenghtImagem(sfile[0]) * 8);
 //
-//        ArrayList<NumeroBits> aN = new ArrayList<>();
+//        ArrayList<NumberToBits> aN = new ArrayList<>();
 //
-//        ArrayList<NumeroBits> aN2 = new ArrayList<>();
+//        ArrayList<NumberToBits> aN2 = new ArrayList<>();
 //
 //        for (int cont = 0; cont < nfile.length; cont++) {
 //            System.out.println(" " + nfile[cont].getPath());
@@ -574,7 +576,7 @@ public class OpenACJ
 //        long startTime = System.nanoTime();
 //
 //          nr.showValues();
-//        nr.TrainingNewOpenACJ(1);
+//        nr.TrainingNewOpenACJ(3, 3);
 //         nr.printaValoresPesos();
 //        nr2.TrainingNewOpenACJ(1);
 //
@@ -588,6 +590,51 @@ public class OpenACJ
 //        System.out.println(nr.outNeuronCompletResult(nr.inTrainningBits.get(0)));
 //
 //        System.out.println(nr2.outNeuronCompletResult(nr.inTrainningBits.get(0)));
+        //Código exemplo, não pode haver duas imagens iguais (muito parecidas) nas pastas de treino, irá causar um loop infinito
+        //Comece com imagens simples, se for uma imagem de bicicleta ela deve ser apeans isso, não deve haver outros objetos juntos
+        AuxIA ia = new AuxIA();
+
+        //Pasta contendo imagens para treino neste caso letra X
+        File imgsX[] = new File("E:\\Imgs0").listFiles();
+        //Pasta contendo imagens para treino neste caso letra O
+        File imgs0[] = new File("E:\\Imgs1").listFiles();
+
+        //Pasta contendo imagens para treino neste caso letra W
+        File imgsW[] = new File("E:\\Imgs2").listFiles();
+
+        //Pasta com letra X de teste
+        File imgstest[] = new File("E:\\Imgstest").listFiles();
+
+        for (int cont = 0; cont < imgsX.length; cont++) {
+            System.out.println(" " + imgsX[cont].getPath());
+            //O campo index deve ser associado ao objeto que sera treinado, 
+            //o valor e incrementado quando se treina um novo objeto, quando se treina um objeto que já exista utiliza se o valor original 
+            //O ultimo campo deve ser sim apenas pra imagem associada ao index atual o resto deve ser não
+            ia.setValTrainningByteAll(0, ImageIO.read(imgsX[cont]), SIM);
+            ia.setValTrainningByteAll(1, ImageIO.read(imgsX[cont]), NAO);
+            ia.setValTrainningByteAll(2, ImageIO.read(imgsX[cont]), NAO);
+        }
+
+        for (int cont = 0; cont < imgs0.length; cont++) {
+            System.out.println(" " + imgs0[cont].getPath());
+            ia.setValTrainningByteAll(0, ImageIO.read(imgs0[cont]), NAO);
+            ia.setValTrainningByteAll(1, ImageIO.read(imgs0[cont]), SIM);
+            ia.setValTrainningByteAll(2, ImageIO.read(imgs0[cont]), NAO);
+        }
+
+        for (int cont = 0; cont < imgsW.length; cont++) {
+            System.out.println(" " + imgsW[cont].getPath());
+            ia.setValTrainningByteAll(0, ImageIO.read(imgsW[cont]), NAO);
+            ia.setValTrainningByteAll(1, ImageIO.read(imgsW[cont]), NAO);
+            ia.setValTrainningByteAll(2, ImageIO.read(imgsW[cont]), SIM);
+        }
+
+        ia.trainning(null, 2, 2);
+
+        int result[] = ia.getResultCont(ImageIO.read(imgs0[0]));
+
+        System.out.println("Result " + (result[0] == 0 ? "X" : result[0] == 1 ? "0" : "W"));
+
     }
 }
 

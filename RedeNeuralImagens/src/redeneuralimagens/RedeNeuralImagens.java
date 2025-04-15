@@ -17,6 +17,8 @@ public class RedeNeuralImagens {
 
     public static void main(String[] args) throws IOException {
 
+        //Código exemplo, não pode haver duas imagens iguais (muito parecidas) nas pastas de treino, irá causar um loop infinito
+        //Comece com imagens simples, se for uma imagem de bicicleta ela deve ser apeans isso, não deve haver outros objetos juntos
         byte yes = 2, no = -2;
 
         AuxIA auxia = new AuxIA();

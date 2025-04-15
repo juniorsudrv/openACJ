@@ -31,8 +31,8 @@ public class AuxIA implements Serializable {
 
     public ArrayList<coordCutIMG> cdC = new ArrayList();
 
-    public int sizeRecX = 18;
-    public int sizeRecY = 18;
+    public int sizeRecX = 24;
+    public int sizeRecY = 24;
     public int qtdQdRec = 4;
     public int bdiv = 2;
 
@@ -108,7 +108,7 @@ public class AuxIA implements Serializable {
         if (progresso != null) {
             progresso.setValue(0);
         } else {
-            System.out.println("0");
+            System.out.println("0%");
         }
 
         ini = 0;
@@ -121,7 +121,7 @@ public class AuxIA implements Serializable {
             if (progresso != null) {
                 progresso.setValue((ini += valueInc));
             } else {
-                System.out.println("" + (ini += valueInc));
+                System.out.println("" + (ini += valueInc)+"%");
 
             }
         }
@@ -129,7 +129,7 @@ public class AuxIA implements Serializable {
         if (progresso != null) {
             progresso.setValue(100);
         } else {
-            System.out.println("100");
+            System.out.println("100%");
         }
     }
 
@@ -141,7 +141,7 @@ public class AuxIA implements Serializable {
         if (progresso != null) {
             progresso.setValue(0);
         } else {
-            System.out.println("0");
+            System.out.println("0%");
         }
         ini = 0;
 
@@ -153,14 +153,14 @@ public class AuxIA implements Serializable {
             if (progresso != null) {
                 progresso.setValue((ini += valueInc));
             } else {
-                System.out.println("" + (ini += valueInc));
+                System.out.println("" + (ini += valueInc)+"%");
 
             }
         }
         if (progresso != null) {
             progresso.setValue(100);
         } else {
-            System.out.println("100");
+            System.out.println("100%");
         }
     }
 

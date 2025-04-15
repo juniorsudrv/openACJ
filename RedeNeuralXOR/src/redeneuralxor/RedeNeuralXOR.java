@@ -17,44 +17,38 @@ public class RedeNeuralXOR {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Color c = new Color(-1707537);
-        
-        System.out.println(" "+c.toString());
-        if(true)return;
-        
-        
+
         byte out2 = -2;
         byte outI2 = 2;
 
-        OpenACJ acj = new OpenACJ(2);
+        OpenACJ acj = new OpenACJ(4);
         acj.setValForTraining(0, outI2);
         acj.setValForTraining(1, outI2);
-        acj.setValForTraining(2, outI2);
-        acj.setValForTraining(3, outI2);
-        
+        acj.setValForTraining(2, out2);
+        acj.setValForTraining(3, out2);
+
         acj.TrainingNewOpenACJ(2, 2);
-        
-        float saida= acj.outNeuronCompletResult(acj.getValueTestBits(
-                        0));
-        
-        System.out.println(""+
-              saida );
-        saida= acj.outNeuronCompletResult(acj.getValueTestBits(
-                        1));
-        
-        System.out.println(""+
-              saida );
-        saida= acj.outNeuronCompletResult(acj.getValueTestBits(
-                        2));
-        
-        System.out.println(""+
-              saida );
-        saida= acj.outNeuronCompletResult(acj.getValueTestBits(
-                        3));
-        
-        System.out.println(""+
-              saida );
-        
+
+        float saida = acj.outNeuronCompletResult(acj.getValueTestBits(
+                0));
+
+        System.out.println(""
+                + saida);
+        saida = acj.outNeuronCompletResult(acj.getValueTestBits(
+                1));
+
+        System.out.println(""
+                + saida);
+        saida = acj.outNeuronCompletResult(acj.getValueTestBits(
+                2));
+
+        System.out.println(""
+                + saida);
+        saida = acj.outNeuronCompletResult(acj.getValueTestBits(
+                3));
+
+        System.out.println(""
+                + saida);
 
     }
 

@@ -86,6 +86,7 @@ public class NumberToBits
         NumeroParaBits(valor);
 
     }
+    
 
     public NumberToBits(int maxbits, int basemulti, String valor, byte... valorEsperado) {
         //    this.value = value;

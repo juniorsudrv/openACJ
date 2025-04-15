@@ -64,7 +64,10 @@ public class RedesACJWebcam extends javax.swing.JFrame {
         }
     }
 
+    boolean fixarImagem = false;
     boolean contadorAtivo = false;
+
+    ArrayList<String> msgReconhecido = new ArrayList<String>();
 
     ArrayList<ContarItens> itensContador = new ArrayList();
 
@@ -235,8 +238,11 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
                 try {
                     rTreino = (ArrayList<AnalisaResultImgBufferedImg>) IO.ler("rTreino");
+
+                    msgReconhecido = (ArrayList<String>) IO.ler("msgReconhecido");
                 } catch (Exception ex) {
 
+                    msgReconhecido = new ArrayList();
                     Logger.getLogger(SetaRegiaoTreino.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
@@ -363,7 +369,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                 trabalhaObjetos();
                 g.drawImage(fundo, 0, 0, pracha_camera);
                 trabalhando = false;
-            } else if (usarCamera && webcam != null && (local = webcam.getImage()) != null) {
+            } else if (usarCamera && webcam != null && (fixarImagem ? local : (local = webcam.getImage())) != null) {
 
                 //imagem = MeuAJC.image2BlackWhiteTest(local);
                 //JCanny.CannyEdges(local, 1, 0.55);//  MeuAJC.image2BlackWhiteTest(local) ;
@@ -633,7 +639,6 @@ public class RedesACJWebcam extends javax.swing.JFrame {
         altura = new javax.swing.JTextField();
         memoria = new javax.swing.JTextField();
         bt_reconhecer = new javax.swing.JButton();
-        resultado = new javax.swing.JTextField();
         jButton5 = new javax.swing.JButton();
         jButton7 = new javax.swing.JButton();
         jButton8 = new javax.swing.JButton();
@@ -666,8 +671,12 @@ public class RedesACJWebcam extends javax.swing.JFrame {
         tamFileira = new javax.swing.JTextField();
         neuronios = new javax.swing.JTextField();
         jButton4 = new javax.swing.JButton();
+        jButton15 = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         contaP = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        msgEncontro = new javax.swing.JTextArea();
+        resultado = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -682,7 +691,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
         pracha_camera.setLayout(pracha_cameraLayout);
         pracha_cameraLayout.setHorizontalGroup(
             pracha_cameraLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1022, Short.MAX_VALUE)
+            .addGap(0, 1052, Short.MAX_VALUE)
         );
         pracha_cameraLayout.setVerticalGroup(
             pracha_cameraLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -834,11 +843,12 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, painelLayout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addGroup(painelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jButton12)
                             .addGroup(painelLayout.createSequentialGroup()
                                 .addComponent(bt_reconhecer)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(resultado, javax.swing.GroupLayout.PREFERRED_SIZE, 167, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addGap(173, 173, 173))
+                            .addGroup(painelLayout.createSequentialGroup()
+                                .addComponent(jButton12)
+                                .addGap(9, 9, 9)))))
                 .addContainerGap())
         );
         painelLayout.setVerticalGroup(
@@ -872,9 +882,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jButton12)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(painelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(resultado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(bt_reconhecer))
+                .addComponent(bt_reconhecer)
                 .addContainerGap())
         );
 
@@ -995,6 +1003,13 @@ public class RedesACJWebcam extends javax.swing.JFrame {
             }
         });
 
+        jButton15.setText("Fixar Imagem");
+        jButton15.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton15ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -1003,24 +1018,26 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jButton20, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton21, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(20, 20, 20)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jButton21, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jButton20, javax.swing.GroupLayout.DEFAULT_SIZE, 141, Short.MAX_VALUE))
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addGap(32, 32, 32)
                                 .addComponent(comb_redes, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButton1))
                             .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGap(0, 95, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton15, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGap(37, 37, 37)
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(tamFileira, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(tamFileira, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(neuronios, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(numero_coletaid1, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(numero_coletaid1, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
@@ -1034,7 +1051,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                             .addComponent(jButton17, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 39, Short.MAX_VALUE)
                                 .addComponent(jButton3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButton9)
@@ -1063,7 +1080,8 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                         .addComponent(neuronios, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(numero_coletaid1))
                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton21, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jButton21, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton15, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
@@ -1095,24 +1113,33 @@ public class RedesACJWebcam extends javax.swing.JFrame {
         contaP.setLayout(new javax.swing.BoxLayout(contaP, javax.swing.BoxLayout.Y_AXIS));
         jScrollPane2.setViewportView(contaP);
 
+        msgEncontro.setColumns(20);
+        msgEncontro.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        msgEncontro.setRows(5);
+        jScrollPane3.setViewportView(msgEncontro);
+
+        resultado.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
                         .addComponent(painel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(totalObjetos, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(pracha_camera, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE)
-                            .addComponent(jScrollPane2))))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(totalObjetos, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPane1)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 325, Short.MAX_VALUE)
+                            .addComponent(resultado))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -1121,9 +1148,14 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addComponent(pracha_camera, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane2)
+                        .addContainerGap()
+                        .addComponent(resultado, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 255, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jScrollPane3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1210,7 +1242,24 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                         }
                     }
 
-                    anR = new ArrayList<>(trataImagens.anR);;
+                    anR = new ArrayList<>(trataImagens.anR);
+
+                    int cresultado = 0;
+                    int mI = 0;
+
+                    for (int cont = 0; cont < anR.size(); cont++) {
+
+                        if (cresultado < anR.get(cont).acertosResult) {
+
+                            cresultado = anR.get(cont).acertosResult;
+
+                            mI = cont;
+                        }
+
+                    }
+
+                    resultado.setText(anR.get(mI).result);
+                    msgEncontro.setText(msgReconhecido.get(mI));
 
                 }
 
@@ -1307,6 +1356,8 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                         System.out.println(" result " + result[1] + " " + result[0] + " " + comb_redes.getSelectedIndex());
 
                         resultado.setText(comb_redes.getItemAt(result[0]));
+
+                        msgEncontro.setText(msgReconhecido.get(result[0]));
                         nresult = result[0];
 
                     }
@@ -1393,6 +1444,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 
         ia.valuesPossible.remove(comb_redes.getSelectedItem());
+        msgReconhecido.remove(comb_redes.getSelectedItem());
 
         preencheRedes();
         //  salvarREDE();
@@ -1404,6 +1456,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
         try {
             treino_progress.setValue(20);
             ia = (AuxIA) IO.ler("minharede");
+            msgReconhecido = (ArrayList<String>) IO.ler("msgReconhecido");
         } catch (Exception e) {
 
             e.printStackTrace();
@@ -1658,12 +1711,16 @@ public class RedesACJWebcam extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 
         String n1 = JOptionPane.showInputDialog("Digite o nome da rede");
+        String n2 = JOptionPane.showInputDialog("Digite o texto de reconhecimento");
+        if (msgReconhecido == null) {
+            msgReconhecido = new ArrayList();
+        }
 
+        msgReconhecido.add(n2);
         ia.valuesPossible.add(n1);
         preencheRedes();
-
         // salvarREDE();
-        // TODO add your handling code here:
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void comb_redesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_comb_redesActionPerformed
@@ -1699,6 +1756,13 @@ public class RedesACJWebcam extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton12ActionPerformed
 
+    private void jButton15ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton15ActionPerformed
+
+        fixarImagem = !fixarImagem;
+
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton15ActionPerformed
+
     public void atualizaColetas() {
 
         try {
@@ -1726,7 +1790,9 @@ public class RedesACJWebcam extends javax.swing.JFrame {
             ia.yP = Integer.valueOf(altura.getText());
 
             trataImagens.anR = new ArrayList<>();
+
             IO.inserir("minharede", ia);
+            IO.inserir("msgReconhecido", msgReconhecido);
 
         } catch (IOException ex) {
             Logger.getLogger(RedesACJWebcam.class
@@ -1815,6 +1881,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
     private javax.swing.JButton jButton12;
     private javax.swing.JButton jButton13;
     private javax.swing.JButton jButton14;
+    private javax.swing.JButton jButton15;
     private javax.swing.JButton jButton17;
     private javax.swing.JButton jButton19;
     private javax.swing.JButton jButton2;
@@ -1834,9 +1901,11 @@ public class RedesACJWebcam extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSlider jSlider1;
     private javax.swing.JTextField largura;
     private javax.swing.JTextField memoria;
+    private javax.swing.JTextArea msgEncontro;
     private javax.swing.JTextField neuronios;
     private javax.swing.JLabel numero_coletaid1;
     private javax.swing.JPanel painel;
