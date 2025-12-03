@@ -87,10 +87,10 @@ public class TrataImagens implements Serializable {
 
                         tentativas++;
 
-//                        if (tentativas > 1000) {
-//                            ignora = true;
-//                            break;
-//                        }
+                        if (tentativas > 1000) {
+                            ignora = true;
+                            break;
+                        }
                         int[] xy = validaPonto(image, xL, yL);
                         if (xy == null) {
                             ignora = true;
@@ -418,23 +418,35 @@ public class TrataImagens implements Serializable {
 
     
     
-    public boolean isDiff(int x, int y, BufferedImage buf) {
+   public boolean isDiff(int x, int y, BufferedImage img) {
 
-        if (buf.getRGB(x, y) == Color.GREEN.getRGB()) {
-            return false;
-        }
+    // RGB atual
+    int rgb = img.getRGB(x, y);
+    int r  = (rgb >> 16) & 0xFF;
+    int g  = (rgb >>  8) & 0xFF;
+    int b  = (rgb      ) & 0xFF;
 
-        int v0 = buf.getRGB(x - 2, y) + buf.getRGB(x, y - 2);
-        int v1 = buf.getRGB(x - 1, y) + buf.getRGB(x, y - 1);
-        int v2 = buf.getRGB(x, y) + buf.getRGB(x, y);
+    // Vizinho 1 (esquerda)
+    int rgbL = img.getRGB(x - 1, y);
+    int rL = (rgbL >> 16) & 0xFF;
+    int gL = (rgbL >>  8) & 0xFF;
+    int bL = (rgbL      ) & 0xFF;
 
-        int total = v1 > v2 ? v1 - v2 : v2 - v1;
+    // Vizinho 2 (cima)
+    int rgbU = img.getRGB(x, y - 1);
+    int rU = (rgbU >> 16) & 0xFF;
+    int gU = (rgbU >>  8) & 0xFF;
+    int bU = (rgbU      ) & 0xFF;
 
-         total = v0 > total ? v0 - total : total - v0;
-        
-        return total >= limiar;
+    // Distância de cor (diferença real)
+    int diffL = Math.abs(r - rL) + Math.abs(g - gL) + Math.abs(b - bL);
+    int diffU = Math.abs(r - rU) + Math.abs(g - gU) + Math.abs(b - bU);
 
-    }
+    // Maior diferença entre os vizinhos
+    int diff = Math.max(diffL, diffU);
+
+    return diff >= limiar;
+}
     
     
     public boolean isDiff(int limiar, int x, int y, int max, int may, BufferedImage buf) {

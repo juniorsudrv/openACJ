@@ -6,10 +6,12 @@ package IAAprender;
 
 import OpIO.IO;
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.logging.Level;
@@ -707,4 +709,230 @@ public class TrataImagensCamera implements Serializable {
         return pixels.size();
 
     }
+    
+    
+    
+    public ArrayList<AnalisaResultImgBufferedImg> detectarObjetosOtsu(BufferedImage image) {
+    int width = image.getWidth();
+    int height = image.getHeight();
+
+    // Converte para escala de cinza
+    int[] histogram = new int[256];
+    int[][] gray = new int[width][height];
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            Color c = new Color(image.getRGB(x, y));
+            int g = (int)(0.299*c.getRed() + 0.587*c.getGreen() + 0.114*c.getBlue());
+            gray[x][y] = g;
+            histogram[g]++;
+        }
+    }
+
+    // Calcula limiar ótimo com Otsu
+    int total = width * height;
+    float sum = 0;
+    for (int t = 0; t < 256; t++) sum += t * histogram[t];
+
+    float sumB = 0;
+    int wB = 0, wF = 0;
+    float varMax = 0;
+    int limiar = 0;
+
+    for (int t = 0; t < 256; t++) {
+        wB += histogram[t];
+        if (wB == 0) continue;
+        wF = total - wB;
+        if (wF == 0) break;
+
+        sumB += (float) (t * histogram[t]);
+
+        float mB = sumB / wB;
+        float mF = (sum - sumB) / wF;
+
+        float varBetween = (float)wB * (float)wF * (mB - mF) * (mB - mF);
+
+        if (varBetween > varMax) {
+            varMax = varBetween;
+            limiar = t;
+        }
+    }
+
+    // Agora aplica flood fill para separar objetos
+    return detectarObjetos(image, limiar);
+}
+    
+    
+    
+    
+    public ArrayList<AnalisaResultImgBufferedImg> detectarObjetos(BufferedImage image, int limiarBrilho) {
+    ArrayList<AnalisaResultImgBufferedImg> objetos = new ArrayList<>();
+
+    int width = image.getWidth();
+    int height = image.getHeight();
+
+    boolean[][] visitado = new boolean[width][height];
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            if (!visitado[x][y]) {
+                Color cor = new Color(image.getRGB(x, y));
+                int brilho = (int) Math.sqrt(
+                    0.299 * cor.getRed() * cor.getRed() +
+                    0.587 * cor.getGreen() * cor.getGreen() +
+                    0.114 * cor.getBlue() * cor.getBlue()
+                );
+
+                // Se for um pixel "claro" (acima do limiar), consideramos parte de objeto
+                if (brilho > limiarBrilho) {
+                    // Flood fill para agrupar região conectada
+                    Rectangle bbox = floodFillObjeto(image, x, y, visitado, limiarBrilho);
+
+                    if (bbox.width > 5 && bbox.height > 5) { // evita ruído
+                        BufferedImage recorte = image.getSubimage(bbox.x, bbox.y, bbox.width, bbox.height);
+                        objetos.add(new AnalisaResultImgBufferedImg(recorte, bbox.x, bbox.y, bbox.width, bbox.height, gerarCorAleatoriamente()));
+                    }
+                }
+            }
+        }
+    }
+
+    return objetos;
+}
+
+private Rectangle floodFillObjeto(BufferedImage image, int startX, int startY, boolean[][] visitado, int limiarBrilho) {
+    int minX = startX, minY = startY, maxX = startX, maxY = startY;
+
+    ArrayList<Point> fila = new ArrayList<>();
+    fila.add(new Point(startX, startY));
+
+    while (!fila.isEmpty()) {
+        Point p = fila.remove(0);
+        int x = p.x, y = p.y;
+
+        if (x < 0 || y < 0 || x >= image.getWidth() || y >= image.getHeight()) continue;
+        if (visitado[x][y]) continue;
+
+        Color cor = new Color(image.getRGB(x, y));
+        int brilho = (int) Math.sqrt(
+            0.299 * cor.getRed() * cor.getRed() +
+            0.587 * cor.getGreen() * cor.getGreen() +
+            0.114 * cor.getBlue() * cor.getBlue()
+        );
+
+        if (brilho <= limiarBrilho) continue; // ignora fundo
+
+        visitado[x][y] = true;
+
+        // Atualiza bounding box
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+
+        // Adiciona vizinhos
+        fila.add(new Point(x+1, y));
+        fila.add(new Point(x-1, y));
+        fila.add(new Point(x, y+1));
+        fila.add(new Point(x, y-1));
+    }
+
+    return new Rectangle(minX, minY, (maxX - minX) + 1, (maxY - minY) + 1);
+}
+
+
+
+public ArrayList<AnalisaResultImgBufferedImg> detectarObjetosKMeans(BufferedImage image, int k) {
+    int w = image.getWidth();
+    int h = image.getHeight();
+
+    // Converte pixels para vetor RGB
+    int[] pixels = new int[w * h];
+    image.getRGB(0, 0, w, h, pixels, 0, w);
+
+    double[][] data = new double[w * h][3];
+    for (int i = 0; i < pixels.length; i++) {
+        Color c = new Color(pixels[i]);
+        data[i][0] = c.getRed();
+        data[i][1] = c.getGreen();
+        data[i][2] = c.getBlue();
+    }
+
+    // Executa K-means
+    KMeansClustering km = new KMeansClustering(k);
+    int[] labels = km.cluster(data);
+
+    // Identifica o cluster mais frequente (fundo)
+    int[] freq = new int[k];
+    for (int label : labels) freq[label]++;
+    int fundoCluster = 0;
+    for (int i = 1; i < k; i++) {
+        if (freq[i] > freq[fundoCluster]) fundoCluster = i;
+    }
+
+    // Mapa de clusters para reconstruir a imagem segmentada
+    BufferedImage mask = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+    for (int i = 0; i < labels.length; i++) {
+        int x = i % w;
+        int y = i / w;
+        if (labels[i] == fundoCluster) {
+            mask.setRGB(x, y, Color.BLACK.getRGB()); // fundo preto
+        } else {
+            mask.setRGB(x, y, Color.WHITE.getRGB()); // objeto branco
+        }
+    }
+
+    // Agora faz flood-fill para separar objetos e gerar bounding boxes
+    ArrayList<AnalisaResultImgBufferedImg> objetos = new ArrayList<>();
+    boolean[][] visitado = new boolean[w][h];
+
+    for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            if (!visitado[x][y] && new Color(mask.getRGB(x, y)).equals(Color.WHITE)) {
+                Rectangle bbox = floodFillMask(mask, x, y, visitado);
+
+                if (bbox.width > 5 && bbox.height > 5) {
+                    BufferedImage recorte = image.getSubimage(bbox.x, bbox.y, bbox.width, bbox.height);
+                    objetos.add(new AnalisaResultImgBufferedImg(recorte, bbox.x, bbox.y, bbox.width, bbox.height, gerarCorAleatoriamente()));
+                }
+            }
+        }
+    }
+
+    return objetos;
+}
+
+// Flood-fill na máscara binária (objetos brancos)
+private Rectangle floodFillMask(BufferedImage mask, int startX, int startY, boolean[][] visitado) {
+    int minX = startX, minY = startY, maxX = startX, maxY = startY;
+
+    ArrayDeque<Point> fila = new ArrayDeque<>();
+    fila.add(new Point(startX, startY));
+
+    while (!fila.isEmpty()) {
+        Point p = fila.removeFirst();
+        int x = p.x, y = p.y;
+
+        if (x < 0 || y < 0 || x >= mask.getWidth() || y >= mask.getHeight()) continue;
+        if (visitado[x][y]) continue;
+
+        if (mask.getRGB(x, y) != Color.WHITE.getRGB()) continue; // só objeto
+
+        visitado[x][y] = true;
+
+        // Atualiza bounding box
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+
+        // Adiciona vizinhos
+        fila.add(new Point(x+1, y));
+        fila.add(new Point(x-1, y));
+        fila.add(new Point(x, y+1));
+        fila.add(new Point(x, y-1));
+    }
+
+    return new Rectangle(minX, minY, (maxX - minX) + 1, (maxY - minY) + 1);
+}
+
 }

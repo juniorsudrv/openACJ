@@ -163,7 +163,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
     int xI = 0, yI = 0;
 
-    public BufferedImage imagem = null;
+    public BufferedImage imagem = null, imagemTrabalhada=null;
     Webcam webcam = null;
 
     String result = "";
@@ -204,7 +204,6 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                     Webcam fw = null;
                     for (Webcam w : Webcam.getWebcams()) {
                         fw = w;
-
                     }
 
                     webcam = fw;
@@ -385,13 +384,17 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                             : imagem;
                 }
 
-                g.drawImage(reconheceMulti || treinaTempoReal ? imagem : trataImagens.checaImagem(imagem), 0, 0, pracha_camera);
+                imagemTrabalhada = trataImagens.checaImagem(imagem);
+                
+                g.drawImage(reconheceMulti || treinaTempoReal ? imagem : imagemTrabalhada , 0, 0, pracha_camera);
 
             } else {
 
+                
                 imagem = !paraCamera ? toBufferedImage(fundo.getScaledInstance(pracha_camera.getWidth(), pracha_camera.getHeight(), Image.SCALE_AREA_AVERAGING)) : imagem;
 
-                g.drawImage(trataImagens.checaImagem(imagem), 0, 0, pracha_camera);
+                       imagemTrabalhada = trataImagens_.checaImagem(imagem);
+                g.drawImage( imagemTrabalhada, 0, 0, pracha_camera);
             }
 
             try {
@@ -584,7 +587,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
             imagem = fundo = toBufferedImage(fundoWork);
 
-            trataImagens.pegaObjetos_Novo(trataImagens.checaImagem(imagem), imagem);
+            trataImagens.pegaObjetos_Novo(imagemTrabalhada, imagem);
 
             anR = trataImagens.anR;
 
@@ -843,12 +846,9 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, painelLayout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addGroup(painelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(painelLayout.createSequentialGroup()
-                                .addComponent(bt_reconhecer)
-                                .addGap(173, 173, 173))
-                            .addGroup(painelLayout.createSequentialGroup()
-                                .addComponent(jButton12)
-                                .addGap(9, 9, 9)))))
+                            .addComponent(bt_reconhecer)
+                            .addComponent(jButton12))
+                        .addGap(173, 173, 173)))
                 .addContainerGap())
         );
         painelLayout.setVerticalGroup(
@@ -1205,7 +1205,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
 
                 while (reconheceMulti) {
 
-                    BufferedImage b = trataImagens.checaImagem(imagem);
+                    BufferedImage b = imagemTrabalhada;
 
                     trataImagens.pegaObjetos_Novo(b, imagem);
 
@@ -1325,6 +1325,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
             for (Webcam w : Webcam.getWebcams()) {
                 fw = w;
 
+               
             }
 
             webcam = fw;
@@ -1485,6 +1486,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton19ActionPerformed
 
     private void jButton13ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton13ActionPerformed
+
         calibrando = !calibrando;
 
         new Thread(new Runnable() {
@@ -1524,7 +1526,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
             //textField.setText(String.valueOf(source.getValue()));
             int power = source.getValue();
 
-            trataImagens_.limiar = power;
+            trataImagens_.limiar = power*1000000;
 
             trataImagens.mliar = power;
 
@@ -1544,7 +1546,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                 do {
 
 //                    try {
-                    BufferedImage b = trataImagens.checaImagem(imagem);
+                    BufferedImage b = imagemTrabalhada;
                     //ImageIO.write((b), "png", new File("saida.png"));
 
                     trataImagens.pegaObjetos_Novo(b, imagem);
@@ -1838,6 +1840,7 @@ public class RedesACJWebcam extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
+                    
 
                 }
             }

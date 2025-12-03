@@ -629,11 +629,26 @@ public class OpenACJ
             ia.setValTrainningByteAll(2, ImageIO.read(imgsW[cont]), SIM);
         }
 
-        ia.trainning(null, 2, 2);
+        ia.trainning(null, 3, 3);
 
-        int result[] = ia.getResultCont(ImageIO.read(imgs0[0]));
-
-        System.out.println("Result " + (result[0] == 0 ? "X" : result[0] == 1 ? "0" : "W"));
+        
+        
+        
+          for (File f : imgs0) {
+            BufferedImage testImg = ImageIO.read(f);
+            int result[] = ia.getResultCont(testImg);
+            System.out.println(f.getName()+" Resultado: " + (result[0] == 0 ? "X" : result[0] == 1 ? "0" : "W") + " (Acertos: " + result[1] + ")");
+        }
+        for (File f : imgsX) {
+            BufferedImage testImg = ImageIO.read(f);
+            int result[] = ia.getResultCont(testImg);
+            System.out.println(f.getName()+" Resultado: " + (result[0] == 0 ? "X" : result[0] == 1 ? "0" : "W") + " (Acertos: " + result[1] + ")");
+        }
+        for (File f : imgsW) {
+            BufferedImage testImg = ImageIO.read(f);
+            int result[] = ia.getResultCont(testImg);
+            System.out.println(f.getName()+" Resultado: " + (result[0] == 0 ? "X" : result[0] == 1 ? "0" : "W") + " (Acertos: " + result[1] + ")");
+        }
 
     }
 }
